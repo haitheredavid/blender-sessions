@@ -1,0 +1,72 @@
+name = "wispy-witch-frame"
+created = "2026-10-10"
+intent = "3D-printable shadow-box frame for a 9x12in witch illustration: concave bat-wing sides with flared corner tips, a face sloping from a thin outer edge into a deep sightwell, and a rabbet with turn clips for a 10x13in backboard."                   # what is this model, and what is it for?
+status = "done"               # active | done (`blend done` sets it)
+workflows = ["mcp-modeling-loop", "ring-sweep-frame", "variant-grid-exploration", "print-fit-and-sectioning", "photo-to-texture", "render-views-and-sections"]                # workflows/<name>.md used or written in this session
+tags = ["3d-print", "frame", "stylized", "parametric", "halloween"]                     # e.g. ["hard-surface", "prop", "low-poly"]
+
+[units]                       # applied by `blend new`; 1 Blender unit = 1 m by default
+scale_length = 0.001            # 0.001 + length_unit = "MILLIMETERS" for mm-scale work
+length_unit = "MILLIMETERS"
+
+[export]                      # `blend export`
+formats = ["obj", "glb"]             # any of glb, fbx, obj
+split = true                 # one file per Model object instead of one combined file
+
+[render]                      # `blend render` studio still -> render.png
+# framing = "fit"             # fit: fill the frame; wide: show the floor around it
+# scene = "Scene"             # scene to render (default: the saved one)
+
+[turntable]                   # `blend turntable` -> out/<session>-turntable.mp4 + .gif
+frames = 120
+fps = 30
+
+# `blend views` shots. Model coords: face +Z, art top +Y; upright hangs it facing -Y.
+[[views]]
+name = "hero"                 # 3/4 as hung on a wall, art proxy in place
+upright = true
+include = ["Ref"]
+azimuth = -62
+elevation = 12
+
+[[views]]
+name = "front"                # straight on, as seen on the wall
+upright = true
+include = ["Ref"]
+azimuth = -90
+elevation = 0
+
+[[views]]
+name = "profile"              # side-on: thin 10 mm outer edge rising to 40 mm
+upright = true
+azimuth = -14
+elevation = 0
+
+[[views]]
+name = "plan"                 # top-down, the sketch's view
+azimuth = -90
+elevation = 89
+
+[[views]]
+name = "back"                 # rabbet, clip pockets and clips
+upright = true
+azimuth = 118
+elevation = 14
+
+[[views]]
+name = "corner"               # horn tip + cove + sightwell shadow, top-right
+upright = true
+include = ["Ref"]
+azimuth = -55
+elevation = 18
+zoom = 4
+target = [127, 163, 20]
+
+[[views]]
+name = "clip"                 # one turn clip over the backboard, from behind
+upright = true
+include = ["Ref"]
+azimuth = 105
+elevation = 30
+zoom = 7
+target = [92.8, 158.9, 3]

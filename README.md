@@ -39,5 +39,7 @@ just workflows           # workflow docs and the sessions that use them
 ## models
 
 <!-- gallery:start -->
-_nothing rendered yet_
+<p align="center">
+<a href="sessions/2026-10-10-wispy-witch-frame/notes.md"><img src="docs/gallery/2026-10-10-wispy-witch-frame.png" width="24%" alt="2026-10-10-wispy-witch-frame" title="3D-printable shadow-box frame for a 9x12in witch illustration: concave bat-wing sides with flared corner tips, a face sloping from a thin outer edge into a deep sightwell, and a rabbet with turn clips for a 10x13in backboard."></a>
+</p>
 <!-- gallery:end -->
