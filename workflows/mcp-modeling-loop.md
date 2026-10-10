@@ -33,5 +33,14 @@ bsdf = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
 - `scene.render.engine` under-reports its options. Assign inside `try/except TypeError`; the error message lists the valid engines.
 - Imported or generated assets (`import_asset`, `generate_3d`) arrive at arbitrary scale. Size them from the reported `world_bounding_box` and put them on the ground.
 - Python state persists between `execute_blender_code` calls. `kit` modules are reloaded by `build_all.py`, but ad-hoc imports are not, so reload them yourself.
+- **Session-local modules** (e.g. `builders/frame_geo.py`, shared by the NN builders and `explore.py`): add `Path(__file__).parent` to sys.path and `importlib.reload` the module in each builder.
+- **mm sessions.** 1 BU = 1 mm, so anything sized in BU for metres breaks:
+  - Viewport clip end (fixed in `setup_scene.py` for new sessions; set it yourself in older files).
+  - Camera `clip_end`.
+  - Studio light scaling (fixed in `render_studio.py`).
+- **Builders that touch Ref (or other collections)** must clear their own objects. `build_all` only clears Model and Work.
+- **Dark print-colour materials read as black blobs** in `look` and studio renders. Use a mid-tone display colour and record the real filament colour in notes.
+- **Put constraints in the builder as asserts** (min wall, envelope, skin over holes). Bad params then fail loudly on rebuild.
 
 ## Sessions
+- 2026-10-10-wispy-witch-frame: first session; added the mm-unit, session-module and builder-assert notes.
