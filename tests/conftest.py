@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture
-def sessions_dir(tmp_path: Path) -> Path:
-    base = tmp_path / "sessions"
-    shutil.copytree(ROOT / "sessions" / "_template", base / "_template")
+def models_dir(tmp_path: Path) -> Path:
+    base = tmp_path / "models"
+    shutil.copytree(ROOT / "models" / "_template", base / "_template")
     return base

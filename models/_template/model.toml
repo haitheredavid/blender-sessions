@@ -1,11 +1,11 @@
 name = "{{name}}"
 created = "{{date}}"
 intent = ""                   # what is this model, and what is it for?
-status = "active"             # active | done (`blend done` sets it)
-workflows = []                # workflows/<name>.md used or written in this session
+status = "active"             # active | done (`blend model done` sets it)
+workflows = []                # workflows/<name>.md used or written for this model
 tags = []                     # e.g. ["hard-surface", "prop", "low-poly"]
 
-[units]                       # applied by `blend new`; 1 Blender unit = 1 m by default
+[units]                       # applied by `blend model new`; 1 Blender unit = 1 m by default
 scale_length = 1.0            # 0.001 + length_unit = "MILLIMETERS" for mm-scale work
 length_unit = "METERS"
 
@@ -24,6 +24,10 @@ formats = ["glb"]             # any of glb, fbx, obj
 # upright = true              # stand the model up (+Z face toward the camera side, -Y)
 # include = ["Ref"]           # also render these collections' meshes (e.g. proxies)
 # zoom = 1.0                  # > 1 crops in on target ([x, y, z] in model coordinates)
+
+[speckle]                     # filled by /checkpoint setup; see .context/speckle-guide.md
+# project_id = ""
+# models = { base = "" }        # Speckle model id per variant
 
 [turntable]                   # `blend turntable` -> out/<session>-turntable.mp4 + .gif
 frames = 120

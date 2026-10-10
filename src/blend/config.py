@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     blender_bin: Path = Path("/Applications/Blender.app/Contents/MacOS/Blender")
     ffmpeg_bin: str = "ffmpeg"
 
-    sessions_dir: Path = ROOT / "sessions"
+    models_dir: Path = ROOT / "models"
     blender_scripts_dir: Path = ROOT / "blender_scripts"
     lib_dir: Path = ROOT / "lib"
     workflows_dir: Path = ROOT / "workflows"

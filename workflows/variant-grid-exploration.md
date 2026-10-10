@@ -32,5 +32,5 @@ Reference implementation: `sessions/2026-10-10-wispy-witch-frame/builders/explor
 - **Keep variants at real size.** Scaling them down to fit hides wall-thickness issues.
 - **Run `build_all` after `clear()`.** The grid shares materials and may leave the Model hidden.
 
-## Sessions
-- 2026-10-10-wispy-witch-frame: edge grid (sag × tip sharpness, plus wobble) and depth grid (25/40/55 × linear/cove/convex); the user picked from the screenshots.
+## Models
+- wispy-witch-frame (2026-10-10): edge grid (sag × tip sharpness, plus wobble) and depth grid (25/40/55 × linear/cove/convex); the user picked from the screenshots.

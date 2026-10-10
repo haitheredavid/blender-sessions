@@ -1,8 +1,8 @@
 """`blend` command line."""
 
-import re
 import shutil
 import subprocess
+import tomllib
 from pathlib import Path
 from typing import Annotated
 
@@ -11,10 +11,16 @@ from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
 
-from blend import blender, gallery, session
+from blend import blender, gallery
+from blend import model as models
 from blend.config import ROOT, get_settings
+from blend.steplog import StepLog
 
-app = typer.Typer(no_args_is_help=True, help="Blender modeling sessions.")
+app = typer.Typer(no_args_is_help=True, help="Blender models, iterated in sessions.")
+model_app = typer.Typer(no_args_is_help=True, help="Create, list and close models.")
+session_app = typer.Typer(no_args_is_help=True, help="Per-sitting session notes.")
+app.add_typer(model_app, name="model")
+app.add_typer(session_app, name="session")
 console = Console()
 
 README = ROOT / "README.md"
@@ -25,20 +31,20 @@ UNITS = {
     "mm": (0.001, "MILLIMETERS"),
 }
 
-SessionArg = Annotated[
-    str, typer.Argument(help="Session folder name or unique part of it.")
+ModelArg = Annotated[
+    str, typer.Argument(help="Model folder name or unique part of it.")
 ]
 
 
-def _session(ref: str) -> session.Session:
+def _model(ref: str) -> models.Model:
     try:
-        return session.resolve(ref)
+        return models.resolve(ref)
     except LookupError as e:
         console.print(f"[red]{escape(str(e))}[/red]")
         raise typer.Exit(1)
 
 
-def _need_blend(s: session.Session) -> None:
+def _need_blend(s: models.Model) -> None:
     if not s.blend.exists():
         console.print(f"[red]{s.blend} does not exist[/red]")
         raise typer.Exit(1)
@@ -60,16 +66,16 @@ def _studio() -> Path:
     return path
 
 
-def _render_args(s: session.Session, framing: str | None, scene: str | None) -> list:
+def _render_args(s: models.Model, framing: str | None, scene: str | None) -> list:
     try:
         opts = s.render_options()
     except ValueError as e:
         console.print(f"[red]{escape(str(e))}[/red]")
         raise typer.Exit(1)
     framing = framing or opts["framing"]
-    if framing not in session.FRAMINGS:
+    if framing not in models.FRAMINGS:
         console.print(
-            f"[red]--framing must be one of {', '.join(session.FRAMINGS)}[/red]"
+            f"[red]--framing must be one of {', '.join(models.FRAMINGS)}[/red]"
         )
         raise typer.Exit(1)
     scene = scene or opts["scene"]
@@ -83,10 +89,10 @@ def _render_args(s: session.Session, framing: str | None, scene: str | None) -> 
 
 
 def _update_gallery() -> None:
-    sessions = session.list_all()
-    for tile in gallery.write_tiles(sessions, TILES):
+    all_models = models.list_all()
+    for tile in gallery.write_tiles(all_models, TILES):
         console.print(f"[dim]tile -> {tile.relative_to(ROOT)}[/dim]")
-    md = gallery.gallery_markdown(sessions, ROOT, TILES)
+    md = gallery.gallery_markdown(all_models, ROOT, TILES)
     try:
         if gallery.update_readme(README, md):
             console.print("[dim]README gallery updated[/dim]")
@@ -94,20 +100,24 @@ def _update_gallery() -> None:
         console.print(f"[yellow]{escape(str(e))}[/yellow]")
 
 
-# --- sessions ---------------------------------------------------------------
+# --- models -----------------------------------------------------------------
 
 
-@app.command()
-def new(
+@model_app.command("new")
+def model_new(
     name: str,
     unit: Annotated[str, typer.Option(help="Length unit: m, cm or mm.")] = "m",
     no_blend: Annotated[bool, typer.Option(help="Skip creating model.blend.")] = False,
 ) -> None:
-    """Create sessions/YYYY-MM-DD-<name>/ from the template."""
+    """Create models/<name>/ from the template."""
     if unit not in UNITS:
         console.print(f"[red]--unit must be one of {', '.join(UNITS)}[/red]")
         raise typer.Exit(1)
-    s = session.create(name)
+    try:
+        s = models.create(name)
+    except FileExistsError as e:
+        console.print(f"[red]{escape(str(e))} already exists[/red]")
+        raise typer.Exit(1)
     scale, length_unit = UNITS[unit]
     s.toml.write_text(
         s.toml.read_text()
@@ -133,43 +143,160 @@ def new(
     console.print(f"[green]created[/green] {s.path}")
 
 
-@app.command("ls")
-def list_sessions() -> None:
-    """List sessions and how far along each is."""
-    table = Table("session", "status", "exports", "workflows")
-    for s in session.list_all():
+@model_app.command("ls")
+def model_ls() -> None:
+    """List models, how far along each is, and their latest session."""
+    table = Table("model", "status", "steps", "last session", "workflows")
+    for s in models.list_all():
+        note = s.latest_session()
         table.add_row(
-            s.name, s.status(), str(len(s.export_files())), ", ".join(s.workflows)
+            s.name,
+            s.status(),
+            str(len(StepLog(s).entries())),
+            note.stem if note else "-",
+            ", ".join(s.workflows),
         )
     console.print(table)
 
 
-@app.command("open")
-def open_cmd(ref: SessionArg) -> None:
-    """Open the session's model.blend in the Blender GUI (MCP bridge auto-starts)."""
-    s = _session(ref)
-    _need_blend(s)
-    blender.open_gui(s.blend)
-    console.print(f"opened {s.blend}")
-
-
-@app.command()
-def latest() -> None:
-    """Print the newest active session's folder name."""
+@model_app.command("latest")
+def model_latest() -> None:
+    """Print the active model worked on most recently."""
     try:
-        print(session.latest().name)
+        print(models.latest().name)
     except LookupError as e:
         console.print(f"[red]{escape(str(e))}[/red]")
         raise typer.Exit(1)
 
 
-@app.command()
-def done(ref: SessionArg) -> None:
-    """Mark a session done and refresh the README gallery."""
-    s = _session(ref)
+@model_app.command("done")
+def model_done(ref: ModelArg) -> None:
+    """Mark a model done and refresh the README gallery."""
+    s = _model(ref)
     s.set_field("status", "done")
     console.print(f"[green]done[/green] {s.name}")
     _update_gallery()
+
+
+@app.command("open")
+def open_cmd(ref: ModelArg) -> None:
+    """Open the model's model.blend in the Blender GUI (MCP bridge auto-starts)."""
+    s = _model(ref)
+    _need_blend(s)
+    blender.open_gui(s.blend)
+    console.print(f"opened {s.blend}")
+
+
+# --- sessions and steps -------------------------------------------------------
+
+
+@session_app.command("new")
+def session_new(
+    ref: ModelArg,
+    name: Annotated[str, typer.Argument(help="Short slug for this sitting.")],
+    goal: Annotated[str, typer.Option(help="One-line goal for the session.")] = "",
+) -> None:
+    """Start a session note: models/<m>/sessions/YYYY-MM-DD-<name>.md."""
+    s = _model(ref)
+    note = s.new_session(name, goal)
+    print(note.relative_to(ROOT))
+
+
+@session_app.command("latest")
+def session_latest(ref: ModelArg) -> None:
+    """Print the model's latest session note path."""
+    note = _model(ref).latest_session()
+    if note is None:
+        console.print("[red]no sessions yet[/red]")
+        raise typer.Exit(1)
+    print(note.relative_to(ROOT))
+
+
+@app.command()
+def step(
+    ref: ModelArg,
+    name: Annotated[
+        str | None, typer.Argument(help="Step slug (omit with --speckle-version).")
+    ] = None,
+    intent: Annotated[str, typer.Option(help="Why, in one line.")] = "",
+    code_file: Annotated[
+        Path | None, typer.Option(help="File holding the code that ran.")
+    ] = None,
+    obj: Annotated[
+        list[str] | None, typer.Option("--object", help="Object touched (repeat).")
+    ] = None,
+    param: Annotated[
+        list[str] | None, typer.Option(help="Param changed, as NAME=VALUE (repeat).")
+    ] = None,
+    speckle_version: Annotated[
+        str | None,
+        typer.Option(help="Speckle version id; alone, attaches to the latest step."),
+    ] = None,
+) -> None:
+    """Log an iteration step to models/<m>/log/ (code kept verbatim)."""
+    log = StepLog(_model(ref))
+    if name is None:
+        if not speckle_version:
+            console.print("[red]give a step name, or --speckle-version alone[/red]")
+            raise typer.Exit(1)
+        try:
+            st = log.set_speckle_version(speckle_version)
+        except LookupError as e:
+            console.print(f"[red]{escape(str(e))}[/red]")
+            raise typer.Exit(1)
+        console.print(f"step {st.n} {st.slug} -> speckle {speckle_version}")
+        return
+    params = {}
+    for kv in param or []:
+        key, sep, value = kv.partition("=")
+        if not sep:
+            console.print(f"[red]--param must be NAME=VALUE, not {kv!r}[/red]")
+            raise typer.Exit(1)
+        params[key.strip()] = _parse_value(value.strip())
+    st = log.append(
+        name,
+        intent=intent,
+        code=code_file.read_text() if code_file else None,
+        objects=obj,
+        params=params,
+        speckle_version=speckle_version,
+    )
+    console.print(
+        f"[green]step {st.n}[/green] {st.slug}" + (f" -> {st.code}" if st.code else "")
+    )
+
+
+def _parse_value(text: str):
+    """--param values: numbers and booleans as such, everything else a string."""
+    try:
+        return tomllib.loads(f"v = {text}")["v"]
+    except tomllib.TOMLDecodeError:
+        return text
+
+
+@app.command()
+def history(
+    ref: ModelArg,
+    last: Annotated[int, typer.Option(help="Only the last N steps (0 = all).")] = 0,
+) -> None:
+    """The model's step timeline across sessions."""
+    s = _model(ref)
+    steps = StepLog(s).last(last)
+    if not steps:
+        console.print("[yellow]no steps logged yet[/yellow]")
+        return
+    table = Table("#", "when", "session", "step", "intent", "params", "speckle")
+    for st in steps:
+        table.add_row(
+            str(st.n),
+            st.ts[:16].replace("T", " "),
+            st.session or "-",
+            st.slug,
+            st.intent,
+            ", ".join(f"{k}={v}" for k, v in st.params.items()) or "-",
+            st.speckle_version or "-",
+        )
+    console.print(table)
 
 
 # --- outputs ----------------------------------------------------------------
@@ -193,13 +320,13 @@ def _flag(o: dict) -> list[str]:
 
 @app.command()
 def check(
-    ref: SessionArg,
+    ref: ModelArg,
     strict: Annotated[
         bool, typer.Option(help="Also fail on non-manifold / unapplied transforms.")
     ] = False,
 ) -> None:
     """Mesh health of the Model collection: topology, normals, transforms, size."""
-    s = _session(ref)
+    s = _model(ref)
     _need_blend(s)
     res = _run("check_mesh.py", blend=s.blend)
     if not res["objects"]:
@@ -236,7 +363,7 @@ def check(
 
 @app.command()
 def export(
-    ref: SessionArg,
+    ref: ModelArg,
     formats: Annotated[
         str | None,
         typer.Option(help="Comma-separated glb,fbx,obj (default: [export] formats)."),
@@ -246,20 +373,19 @@ def export(
     ] = None,
 ) -> None:
     """Export the Model collection to exports/."""
-    s = _session(ref)
+    s = _model(ref)
     _need_blend(s)
     try:
         fmts = formats.split(",") if formats else s.export_formats()
     except ValueError as e:
         console.print(f"[red]{escape(str(e))}[/red]")
         raise typer.Exit(1)
-    if bad := [f for f in fmts if f not in session.EXPORT_FORMATS]:
+    if bad := [f for f in fmts if f not in models.EXPORT_FORMATS]:
         console.print(f"[red]unknown formats: {', '.join(bad)}[/red]")
         raise typer.Exit(1)
     if split is None:
         split = bool(s.config.get("export", {}).get("split", False))
-    slug = s.name[11:] if re.match(r"\d{4}-\d{2}-\d{2}-", s.name) else s.name
-    args = ["--outdir", str(s.exports), "--name", slug, "--formats", ",".join(fmts)]
+    args = ["--outdir", str(s.exports), "--name", s.name, "--formats", ",".join(fmts)]
     res = _run("export.py", blend=s.blend, args=args + (["--split"] if split else []))
     for path in res["written"]:
         console.print(f"[green]wrote[/green] {Path(path).relative_to(s.path)}")
@@ -270,7 +396,7 @@ def export(
 
 @app.command()
 def render(
-    ref: SessionArg,
+    ref: ModelArg,
     framing: Annotated[
         str | None,
         typer.Option(help="fit or wide (default: [render] framing, else fit)."),
@@ -281,7 +407,7 @@ def render(
     ] = None,
 ) -> None:
     """Studio render of the Model collection to render.png; refreshes the gallery."""
-    s = _session(ref)
+    s = _model(ref)
     _need_blend(s)
     args = _render_args(s, framing, scene)
     res = _run("render_studio.py", blend=s.blend, args=[*args, "--out", str(s.render)])
@@ -294,13 +420,13 @@ def render(
 
 @app.command()
 def views(
-    ref: SessionArg,
+    ref: ModelArg,
     only: Annotated[
         list[str] | None, typer.Option(help="Render just these view names.")
     ] = None,
 ) -> None:
-    """Render the session's [[views]] studio shots to out/views/<name>.png."""
-    s = _session(ref)
+    """Render the model's [[views]] studio shots to out/views/<name>.png."""
+    s = _model(ref)
     _need_blend(s)
     try:
         shots = s.views()
@@ -313,7 +439,7 @@ def views(
             raise typer.Exit(1)
         shots = [v for v in shots if v["name"] in only]
     if not shots:
-        console.print("[yellow]no [[views]] in session.toml[/yellow]")
+        console.print("[yellow]no [[views]] in model.toml[/yellow]")
         raise typer.Exit(1)
     out_dir = s.out / "views"
     for v in shots:
@@ -330,14 +456,14 @@ def views(
 
 @app.command()
 def turntable(
-    ref: SessionArg,
+    ref: ModelArg,
     frames: Annotated[int | None, typer.Option(help="Default: [turntable].")] = None,
     fps: Annotated[int | None, typer.Option(help="Default: [turntable].")] = None,
     framing: Annotated[str | None, typer.Option(help="fit or wide.")] = None,
     size: Annotated[int, typer.Option(help="Frame size in px.")] = 720,
 ) -> None:
-    """360° studio turntable -> out/<session>-turntable.mp4 + .gif (needs ffmpeg)."""
-    s = _session(ref)
+    """360° studio turntable -> out/<model>-turntable.mp4 + .gif (needs ffmpeg)."""
+    s = _model(ref)
     _need_blend(s)
     ffmpeg = get_settings().ffmpeg_bin
     if not shutil.which(ffmpeg):
@@ -388,7 +514,7 @@ def render_scene(
 
 @app.command("gallery")
 def gallery_cmd() -> None:
-    """Rewrite the gallery tiles and the README grid from every session's render.png."""
+    """Rewrite the gallery tiles and the README grid from every model's render.png."""
     _update_gallery()
 
 
@@ -397,13 +523,13 @@ def gallery_cmd() -> None:
 
 @app.command()
 def workflows() -> None:
-    """List workflows/ docs and the sessions that use each."""
+    """List workflows/ docs and the models that use each."""
     wdir = get_settings().workflows_dir
     used: dict[str, list[str]] = {}
-    for s in session.list_all():
+    for s in models.list_all():
         for w in s.workflows:
             used.setdefault(w, []).append(s.name)
-    table = Table("workflow", "summary", "sessions")
+    table = Table("workflow", "summary", "models")
     docs = sorted(
         p for p in wdir.glob("*.md") if not p.name.startswith(("_", "README"))
     )

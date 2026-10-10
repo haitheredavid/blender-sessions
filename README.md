@@ -1,6 +1,6 @@
 # blender-sessions
 
-Modeling in Blender through [blender-mcp](https://github.com/ahujasid/blender-mcp), one model per session. Each session leaves behind its `.blend`, the code that builds it, exports and a render. More importantly, the techniques that worked get written up in [`workflows/`](workflows/) so the next session starts smarter.
+Modeling in Blender through [blender-mcp](https://github.com/ahujasid/blender-mcp), alongside an agent. Each model lives in `models/<name>/` and is iterated over many short sessions. It stays parametric (Geometry Nodes driven by `Control` curves you can reshape by hand), every step is logged, and checkpoints are versioned to [Speckle](https://speckle.systems). The techniques that work get written up in [`workflows/`](workflows/). Agent context lives in [`AGENTS.md`](AGENTS.md) and [`.context/`](.context/).
 
 This is a sibling of [bambi](https://github.com/haitheredavid/bambi), with the 3D-printing pipeline swapped for a modeling one.
 
@@ -17,23 +17,28 @@ just setup
 
 `just addon` installs or updates the MCP for Blender add-on (`uvx mcp-for-blender install-addon`); restart Blender after. The MCP server itself is wired up in `.mcp.json`.
 
-## sessions
+## working
 
 In Claude Code:
 
-- `/make <idea>` plans the model, creates `sessions/YYYY-MM-DD-<slug>/`, opens it in Blender and builds it live.
-- `/done` checks, exports and renders the model, writes up lessons, and updates `workflows/`.
+- `/model <idea>` plans a new model and creates `models/<slug>/`.
+- `/session <model> [goal]` is one short sitting. It loads the brief, params and recent steps, models live in Blender, and logs each step.
+- `/checkpoint [msg]` publishes a Speckle version of the current state.
+- `/wrap` promotes steps into builders, then checks, exports and renders. It also distills `workflows/`, checkpoints, and offers a commit.
 
 By hand:
 
 ```sh
-just                     # list recipes
-just new teapot          # new session + model.blend (metres; --unit mm for small parts), opened in Blender
-just check teapot        # mesh health: loose geo, degenerate faces, flipped normals, transforms
-just export teapot       # Model collection -> exports/*.glb (fbx/obj via [export] or --formats)
-just render teapot       # studio render -> render.png + gallery below
-just turntable teapot    # 360° mp4 + gif in out/
-just workflows           # workflow docs and the sessions that use them
+just                       # list recipes
+just new teapot            # new model + model.blend (metres; --unit mm for small parts), opened in Blender
+just session teapot spout  # start a session note
+just history teapot        # step timeline across sessions
+just check teapot          # mesh health: loose geo, degenerate faces, flipped normals, transforms
+just export teapot         # Model collection -> exports/*.glb (fbx/obj via [export] or --formats)
+just render teapot         # studio render -> render.png + gallery below
+just views teapot          # [[views]] shots -> out/views/
+just turntable teapot      # 360° mp4 + gif in out/
+just workflows             # workflow docs and the models that use them
 ```
 
 ## models

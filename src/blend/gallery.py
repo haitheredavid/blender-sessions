@@ -1,8 +1,9 @@
-"""Session renders and the README gallery.
+"""Model renders and the README gallery.
 
-render.png (`blend render`) is a studio shot at the session root, so it's committed
-(out/ is gitignored). The README shows renders as uniform tiles (docs/gallery/<session>.png)
-in a grid between the gallery markers; each tile links to the session's notes.
+render.png (`blend render`) is a studio shot at the model root, so it's committed
+(out/ is gitignored). The README shows renders as uniform tiles (docs/gallery/<model>.png)
+in a grid between the gallery markers, most recently rendered first; each tile links to
+the model's brief.
 """
 
 import re
@@ -12,7 +13,7 @@ from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageOps
 
-from blend.session import Session
+from blend.model import Model
 
 START = "<!-- gallery:start -->"
 END = "<!-- gallery:end -->"
@@ -21,15 +22,13 @@ TILE = 480
 BG_TOP, BG_BOTTOM = (180, 185, 192), (160, 161, 164)  # the studio cyclorama
 
 
-def session_image(s: Session) -> Path | None:
-    return s.render if s.render.exists() else None
+def model_image(m: Model) -> Path | None:
+    return m.render if m.render.exists() else None
 
 
-def _label(s: Session) -> tuple[str, str]:
-    """('colossus tmg', '2026-09-26') from '2026-09-26-colossus-tmg'."""
-    if re.match(r"\d{4}-\d{2}-\d{2}-", s.name):
-        return s.name[11:].replace("-", " "), s.name[:10]
-    return s.name.replace("-", " "), ""
+def _label(m: Model) -> tuple[str, str]:
+    """('colossus tmg', '2026-09-26') from 'colossus-tmg' created 2026-09-26."""
+    return m.name.replace("-", " "), str(m.config.get("created", ""))
 
 
 def _font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -91,31 +90,33 @@ def make_tile(src: Path, title: str, subtitle: str, size: int = TILE) -> Image.I
     return tile
 
 
-def _shown(sessions: list[Session]) -> list[Session]:
+def _shown(models: list[Model]) -> list[Model]:
     return sorted(
-        (s for s in sessions if session_image(s)), key=lambda s: s.name, reverse=True
+        (m for m in models if model_image(m)),
+        key=lambda m: (m.render.stat().st_mtime, m.name),
+        reverse=True,
     )
 
 
-def write_tiles(sessions: list[Session], tiles: Path) -> list[Path]:
-    """Render tiles/<session>.png for every session with an image; returns the changed ones."""
+def write_tiles(models: list[Model], tiles: Path) -> list[Path]:
+    """Render tiles/<model>.png for every model with an image; returns the changed ones."""
     tiles.mkdir(parents=True, exist_ok=True)
     changed = []
-    for s in _shown(sessions):
+    for m in _shown(models):
         buf = BytesIO()
-        img = session_image(s)
+        img = model_image(m)
         assert img is not None
-        make_tile(img, *_label(s)).save(buf, "PNG", optimize=True)
-        dest = tiles / f"{s.name}.png"
+        make_tile(img, *_label(m)).save(buf, "PNG", optimize=True)
+        dest = tiles / f"{m.name}.png"
         if not dest.exists() or dest.read_bytes() != buf.getvalue():
             dest.write_bytes(buf.getvalue())
             changed.append(dest)
     return changed
 
 
-def gallery_markdown(sessions: list[Session], root: Path, tiles: Path) -> str:
+def gallery_markdown(models: list[Model], root: Path, tiles: Path) -> str:
     """A borderless grid of tile links, newest first. Paths are relative to root."""
-    shown = _shown(sessions)
+    shown = _shown(models)
     if not shown:
         return "_nothing rendered yet_"
 
@@ -123,13 +124,13 @@ def gallery_markdown(sessions: list[Session], root: Path, tiles: Path) -> str:
         return p.relative_to(root).as_posix()
 
     links = []
-    for s in shown:
-        tip = escape(s.config.get("intent", "") or s.name, quote=True)
+    for m in shown:
+        tip = escape(m.config.get("intent", "") or m.name, quote=True)
         img = (
-            f'<img src="{rel(tiles / f"{s.name}.png")}" width="{100 // COLUMNS - 1}%" '
-            f'alt="{escape(s.name, quote=True)}" title="{tip}">'
+            f'<img src="{rel(tiles / f"{m.name}.png")}" width="{100 // COLUMNS - 1}%" '
+            f'alt="{escape(m.name, quote=True)}" title="{tip}">'
         )
-        links.append(f'<a href="{rel(s.path / "notes.md")}">{img}</a>')
+        links.append(f'<a href="{rel(m.brief)}">{img}</a>')
     return '<p align="center">\n' + "\n".join(links) + "\n</p>"
 
 

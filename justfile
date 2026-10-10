@@ -36,59 +36,69 @@ fmt:
 # lint + tests
 ci: lint test
 
-# --- sessions ----------------------------------------------------------------
+# --- models and sessions -----------------------------------------------------
 
-# create sessions/YYYY-MM-DD-<name>/ and open it in Blender (--unit m|cm|mm)
+# create models/<name>/ and open it in Blender (--unit m|cm|mm)
 new name *flags:
-    {{blend}} new "$@"
+    {{blend}} model new "$@"
     {{blend}} open {{name}}
 
-# list sessions
+# list models
 ls:
-    {{blend}} ls
+    {{blend}} model ls
 
-# open a session's model.blend (MCP bridge auto-starts)
-open session:
-    {{blend}} open {{session}}
+# open a model's model.blend (MCP bridge auto-starts)
+open model:
+    {{blend}} open {{model}}
+
+# start a session note for a model (--goal "...")
+session model name *flags:
+    {{blend}} session new "$@"
+
+# a model's step timeline (--last N)
+history model *flags:
+    {{blend}} history "$@"
+
+# --- outputs -------------------------------------------------------------------
 
 # mesh health of the Model collection (--strict also fails non-manifold/transforms)
-check session *flags:
+check model *flags:
     {{blend}} check "$@"
 
 # export the Model collection to exports/ (--formats glb,fbx,obj --split)
-export session *flags:
+export model *flags:
     {{blend}} export "$@"
 
-# studio render -> sessions/<s>/render.png + README gallery (--framing fit|wide)
-render session *flags:
+# studio render -> models/<m>/render.png + README gallery (--framing fit|wide)
+render model *flags:
     {{blend}} render "$@"
 
-# 360° turntable -> sessions/<s>/out/<s>-turntable.mp4 + .gif
-turntable session *flags:
+# 360° turntable -> models/<m>/out/<m>-turntable.mp4 + .gif
+turntable model *flags:
     {{blend}} turntable "$@"
 
-# render the session's [[views]] studio shots -> sessions/<s>/out/views/ (--only NAME)
-views session *flags:
+# render the model's [[views]] studio shots -> models/<m>/out/views/ (--only NAME)
+views model *flags:
     {{blend}} views "$@"
 
 # build assets/studio.blend, the scene render/turntable use (--overwrite discards hand edits)
 render-scene *flags:
     {{blend}} render-scene "$@"
 
-# rewrite the README gallery from every session's render.png
+# rewrite the README gallery from every model's render.png
 gallery:
     {{blend}} gallery
 
 # check -> export -> render
-wrap session:
-    {{blend}} check {{session}}
-    {{blend}} export {{session}}
-    {{blend}} render {{session}}
+wrap model:
+    {{blend}} check {{model}}
+    {{blend}} export {{model}}
+    {{blend}} render {{model}}
 
-# mark a session done and refresh the gallery
-done session:
-    {{blend}} done {{session}}
+# mark a model done and refresh the gallery
+done model:
+    {{blend}} model done {{model}}
 
-# workflows/ docs and the sessions that use each
+# workflows/ docs and the models that use each
 workflows:
     {{blend}} workflows

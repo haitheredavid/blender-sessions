@@ -13,6 +13,8 @@ import bpy
 MODEL = "Model"  # the deliverable: exported, checked and rendered
 WORK = "Work"  # builders, cutters, helpers: excluded from outputs
 REF = "Ref"  # reference images / blockouts: excluded from outputs
+CONTROL = "Control"  # user-owned GN inputs (curves, empties, sketches): excluded
+NOTES = "Notes"  # dimension lines / callouts: excluded unless a view includes them
 
 
 def parse(parser: argparse.ArgumentParser) -> argparse.Namespace:

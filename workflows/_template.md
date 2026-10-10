@@ -16,5 +16,5 @@
 ## Gotchas
 - 
 
-## Sessions
-- <YYYY-MM-DD-slug>: <what it was used for, what changed in the workflow>
+## Models
+- <model> (<YYYY-MM-DD>): <what it was used for, what changed in the workflow>

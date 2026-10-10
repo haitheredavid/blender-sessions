@@ -13,10 +13,13 @@ wheels/
 .env
 *.blend1
 *.blend@
+models/*/out/*
+!models/*/out/.gitkeep
+# legacy, until sessions/ is migrated to models/
 sessions/*/out/*
-!sessions/*/out/.gitkeep
+sessions/refs/
 .DS_Store
 
 **/worktrees/
 # third-party reference images (not ours to publish)
-sessions/refs/
+refs/

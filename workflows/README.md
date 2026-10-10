@@ -1,8 +1,8 @@
 # Workflows
 
-Reusable Blender techniques distilled from sessions. Read the relevant ones before modeling (`/make` does this). Write new ones or update existing ones when a session ends (`/done` does this). Start each new doc from `_template.md`.
+Reusable Blender techniques distilled from sessions. Read the relevant ones before modeling (`/model` and `/session` do this). Write new ones or update existing ones when a session ends (`/wrap` does this; see `.context/writing-workflows.md`). Start each new doc from `_template.md`.
 
-`just workflows` lists each doc with the sessions that use it, read from `workflows = [...]` in each `session.toml`.
+`just workflows` lists each doc with the models that use it, read from `workflows = [...]` in each `model.toml`.
 
 | workflow | summary |
 |---|---|

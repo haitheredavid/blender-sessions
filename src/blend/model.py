@@ -1,4 +1,9 @@
-"""Sessions: dated folders under sessions/, one model each, holding its .blend and outputs."""
+"""Models: long-lived folders under models/, each iterated across many short sessions.
+
+models/<slug>/ holds model.blend, model.toml (config), params.toml (GN params + variants),
+builders/, log/ (every iteration step, see blend.steplog), sessions/ (one note per sitting),
+exports/, render.png and out/ (gitignored scratch).
+"""
 
 import re
 import shutil
@@ -16,17 +21,34 @@ FRAMINGS = (
 )  # `blend render`: zoom to the model, or pull back for context
 EXPORT_FORMATS = ("glb", "fbx", "obj")
 EXPORT_SUFFIXES = {f".{f}" for f in EXPORT_FORMATS}
+SESSION_NOTE = """\
+# {date} {slug}
+
+## Goal
+{goal}
+
+## Steps
+<!-- `blend history {model}` has the full step log; summarise the arc here. -->
+
+## Outcome
+
+## Next
+"""
 
 
 def slugify(name: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
     if not slug:
-        raise ValueError(f"invalid session name: {name!r}")
+        raise ValueError(f"invalid name: {name!r}")
     return slug
 
 
+def today() -> date:
+    return datetime.now().astimezone().date()
+
+
 @dataclass
-class Session:
+class Model:
     path: Path
 
     @property
@@ -35,7 +57,15 @@ class Session:
 
     @property
     def toml(self) -> Path:
-        return self.path / "session.toml"
+        return self.path / "model.toml"
+
+    @property
+    def params_toml(self) -> Path:
+        return self.path / "params.toml"
+
+    @property
+    def brief(self) -> Path:
+        return self.path / "brief.md"
 
     @property
     def blend(self) -> Path:
@@ -50,6 +80,14 @@ class Session:
         return self.path / "out"
 
     @property
+    def log_dir(self) -> Path:
+        return self.path / "log"
+
+    @property
+    def sessions_dir(self) -> Path:
+        return self.path / "sessions"
+
+    @property
     def render(self) -> Path:
         return self.path / "render.png"
 
@@ -60,6 +98,71 @@ class Session:
     @property
     def workflows(self) -> list[str]:
         return list(self.config.get("workflows", []))
+
+    @property
+    def speckle(self) -> dict:
+        """[speckle] project/model ids written by /checkpoint setup."""
+        return dict(self.config.get("speckle", {}))
+
+    # --- params ---------------------------------------------------------------
+
+    def params(self) -> dict:
+        """params.toml [base]: the canonical GN inputs."""
+        if not self.params_toml.exists():
+            return {}
+        return dict(tomllib.loads(self.params_toml.read_text()).get("base", {}))
+
+    def variants(self) -> dict[str, dict]:
+        """[variants.<v>] merged over [base], keyed by variant name (base first)."""
+        base = self.params()
+        raw = (
+            tomllib.loads(self.params_toml.read_text()).get("variants", {})
+            if self.params_toml.exists()
+            else {}
+        )
+        out = {"base": base}
+        for name, overrides in raw.items():
+            if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", name):
+                raise ValueError(f"[variants.{name}]: name must be a lowercase slug")
+            if name == "base":
+                raise ValueError("[variants.base] is reserved; use [base]")
+            if unknown := set(overrides) - set(base):
+                raise ValueError(
+                    f"[variants.{name}] overrides unknown params: {sorted(unknown)}"
+                )
+            out[name] = {**base, **overrides}
+        return out
+
+    # --- sessions -------------------------------------------------------------
+
+    def session_notes(self) -> list[Path]:
+        if not self.sessions_dir.is_dir():
+            return []
+
+        def created(p: Path) -> tuple:  # date prefix, then creation order within a day
+            st = p.stat()
+            return p.name[:10], getattr(st, "st_birthtime", st.st_mtime), p.name
+
+        return sorted(self.sessions_dir.glob("[0-9][0-9][0-9][0-9]-*.md"), key=created)
+
+    def latest_session(self) -> Path | None:
+        notes = self.session_notes()
+        return notes[-1] if notes else None
+
+    def new_session(self, name: str, goal: str = "", on: date | None = None) -> Path:
+        """sessions/YYYY-MM-DD-<slug>.md; a second one the same day gets a -2 suffix."""
+        slug = slugify(name)
+        day = (on or today()).isoformat()
+        self.sessions_dir.mkdir(exist_ok=True)
+        path, n = self.sessions_dir / f"{day}-{slug}.md", 2
+        while path.exists():
+            path, n = self.sessions_dir / f"{day}-{slug}-{n}.md", n + 1
+        path.write_text(
+            SESSION_NOTE.format(date=day, slug=slug, goal=goal, model=self.name)
+        )
+        return path
+
+    # --- outputs --------------------------------------------------------------
 
     def render_options(self) -> dict:
         """[render] framing (fit|wide) and scene for `blend render`, with defaults."""
@@ -134,7 +237,7 @@ class Session:
         return "new"
 
     def set_field(self, key: str, value: str | list[str]) -> None:
-        """Set a top-level key in session.toml in place, keeping comments and layout."""
+        """Set a top-level key in model.toml in place, keeping comments and layout."""
         if isinstance(value, list):
             rendered = "[" + ", ".join(f'"{v}"' for v in value) + "]"
         else:
@@ -155,54 +258,64 @@ class Session:
             _, _, comment = lines[hit].partition("#")
             lines[hit] = f"{new:<29} #{comment}" if comment else new
         text = "\n".join(lines) + "\n"
-        tomllib.loads(text)  # never leave a broken session.toml behind
+        tomllib.loads(text)  # never leave a broken model.toml behind
         self.toml.write_text(text)
 
 
-def sessions_dir(base: Path | None = None) -> Path:
-    return base or get_settings().sessions_dir
+def models_dir(base: Path | None = None) -> Path:
+    return base or get_settings().models_dir
 
 
-def create(name: str, base: Path | None = None, today: date | None = None) -> Session:
-    base = sessions_dir(base)
+def create(name: str, base: Path | None = None, on: date | None = None) -> Model:
+    base = models_dir(base)
     slug = slugify(name)
-    dest = base / f"{(today or datetime.now().astimezone().date()).isoformat()}-{slug}"
+    dest = base / slug
     if dest.exists():
         raise FileExistsError(dest)
     shutil.copytree(base / TEMPLATE, dest, ignore=shutil.ignore_patterns(".DS_Store"))
-    s = Session(dest)
-    s.toml.write_text(
-        s.toml.read_text().replace("{{name}}", slug).replace("{{date}}", dest.name[:10])
-    )
-    return s
+    m = Model(dest)
+    created = (on or today()).isoformat()
+    for f in (m.toml, m.brief):
+        f.write_text(
+            f.read_text().replace("{{name}}", slug).replace("{{date}}", created)
+        )
+    return m
 
 
-def list_all(base: Path | None = None) -> list[Session]:
-    base = sessions_dir(base)
+def list_all(base: Path | None = None) -> list[Model]:
+    base = models_dir(base)
+    if not base.is_dir():
+        return []
     return [
-        Session(p)
+        Model(p)
         for p in sorted(base.iterdir())
-        if p.is_dir() and p.name != TEMPLATE and (p / "session.toml").exists()
+        if p.is_dir() and p.name != TEMPLATE and (p / "model.toml").exists()
     ]
 
 
-def resolve(ref: str, base: Path | None = None) -> Session:
-    """Find a session by exact folder name, or by unique substring (e.g. 'teapot')."""
-    all_sessions = list_all(base)
-    exact = [s for s in all_sessions if s.name == ref]
+def resolve(ref: str, base: Path | None = None) -> Model:
+    """Find a model by exact folder name, or by unique substring (e.g. 'witch')."""
+    all_models = list_all(base)
+    exact = [m for m in all_models if m.name == ref]
     if exact:
         return exact[0]
-    matches = [s for s in all_sessions if ref in s.name]
+    matches = [m for m in all_models if ref in m.name]
     if len(matches) == 1:
         return matches[0]
     if not matches:
-        raise LookupError(f"no session matches {ref!r}")
-    raise LookupError(f"{ref!r} is ambiguous: {', '.join(s.name for s in matches)}")
+        raise LookupError(f"no model matches {ref!r}")
+    raise LookupError(f"{ref!r} is ambiguous: {', '.join(m.name for m in matches)}")
 
 
-def latest(base: Path | None = None) -> Session:
-    """Newest session that isn't done (for `/done` with no argument)."""
-    active = [s for s in list_all(base) if s.status() != "done"]
+def latest(base: Path | None = None) -> Model:
+    """The active model with the most recent session note (or newest folder)."""
+    active = [m for m in list_all(base) if m.status() != "done"]
     if not active:
-        raise LookupError("no active sessions")
-    return active[-1]
+        raise LookupError("no active models")
+    return max(
+        active,
+        key=lambda m: (
+            m.latest_session().name[:10] if m.latest_session() else "",
+            m.path.stat().st_mtime,
+        ),
+    )

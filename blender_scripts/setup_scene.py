@@ -1,10 +1,10 @@
-"""Create an empty session .blend: metric, 1 Blender unit = 1 m, with session collections.
+"""Create an empty model .blend: metric, 1 Blender unit = 1 m, with the model collections.
 
 Usage: blender -b --factory-startup -P setup_scene.py -- --save path/to/model.blend --result r.json
        [--scale-length 1.0 --length-unit METERS]
 
-Collections: Model (the deliverable), Work (builders/cutters/helpers, hidden from
-outputs), Ref (reference images, blockouts).
+Collections: Model (the deliverable), Work (builders/cutters/helpers), Control (user-owned
+GN inputs), Notes (dimensions/callouts), Ref (reference images). Only Model renders.
 """
 
 import argparse
@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import bpy
-from _common import MODEL, REF, WORK, parse, write_result
+from _common import CONTROL, MODEL, NOTES, REF, WORK, parse, write_result
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--save", required=True)
@@ -47,10 +47,10 @@ for screen in bpy.data.screens:
                 space.clip_start = 0.01 * k
                 space.clip_end = 1000.0 * k
 
-for name in (MODEL, WORK, REF):
+for name in (MODEL, CONTROL, WORK, NOTES, REF):
     scene.collection.children.link(bpy.data.collections.new(name))
-# Work and Ref stay visible in the viewport but never render.
-for name in (WORK, REF):
+# Everything but Model stays visible in the viewport but never renders.
+for name in (CONTROL, WORK, NOTES, REF):
     bpy.data.collections[name].hide_render = True
 
 Path(opts.save).parent.mkdir(parents=True, exist_ok=True)

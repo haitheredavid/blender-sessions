@@ -42,5 +42,5 @@ Reference: `sessions/2026-10-10-wispy-witch-frame/builders/crop_art.py` (detecti
 - **A glass or glazing proxy over the art draws opaque in Solid mode.** Set its `display_type = "WIRE"` (viewport only; renders still use the material). Keep its alpha low, about 0.05, or the art reads milky.
 - **`bpy.data.images.load` + `foreach_get` on a 12 MP photo is about 31M floats.** That's fine, but remove the datablock afterwards.
 
-## Sessions
-- 2026-10-10-wispy-witch-frame: cropped the witch illustration photo to the 9×12" paper with its white border and showed it inside the frame.
+## Models
+- wispy-witch-frame (2026-10-10): cropped the witch illustration photo to the 9×12" paper with its white border and showed it inside the frame.

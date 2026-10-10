@@ -55,5 +55,5 @@ Full implementation: `sessions/2026-10-10-wispy-witch-frame/builders/frame_geo.p
 - **Local frames for features on each edge:** derive the second axis from the first. Building from two independent "along"/"outward" vectors gives left-handed matrices on half the corners, which mirror the cutters and flip normals.
 - **Section-cut copies:** offset them *toward* the viewing camera, or the real model sits between the camera and the cut (see [render-views-and-sections](render-views-and-sections.md)).
 
-## Sessions
-- 2026-10-10-wispy-witch-frame: 3D-printable frame with bat-wing bowed sides, cove face, 33 mm sightwell, 9 mm rabbet (glazing + art + clip zone) and 8 turn-clip pockets.
+## Models
+- wispy-witch-frame (2026-10-10): 3D-printable frame with bat-wing bowed sides, cove face, 33 mm sightwell, 9 mm rabbet (glazing + art + clip zone) and 8 turn-clip pockets.

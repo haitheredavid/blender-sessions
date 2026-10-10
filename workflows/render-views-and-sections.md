@@ -37,5 +37,5 @@ m.translation = target + z * dist
 - **`render.png` and the gallery still use the flat, Model-only still.** Point people at `out/views/hero.png` for wall pieces.
 - **mm sessions need the viewport clip range scaled.** Defaults are 1000 BU = 1 m; `setup_scene.py` now scales it. Cameras need `clip_end` in mm too.
 
-## Sessions
-- 2026-10-10-wispy-witch-frame: added `blend views` (hero, front, profile, plan, back, corner, clip), `Cam_*` cameras and a red-capped live section of frame + clips + art stack.
+## Models
+- wispy-witch-frame (2026-10-10): added `blend views` (hero, front, profile, plan, back, corner, clip), `Cam_*` cameras and a red-capped live section of frame + clips + art stack.

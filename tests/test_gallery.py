@@ -1,10 +1,11 @@
-from datetime import date
+import os
 from io import BytesIO
 
 import pytest
 from PIL import Image
 
-from blend import gallery, session
+from blend import gallery
+from blend import model as models
 
 
 def png(color: tuple, alpha: int = 255) -> bytes:
@@ -13,24 +14,25 @@ def png(color: tuple, alpha: int = 255) -> bytes:
     return buf.getvalue()
 
 
-def test_gallery_links_tiles_newest_first(sessions_dir):
-    root = sessions_dir.parent
-    a = session.create("cube", base=sessions_dir, today=date(2026, 10, 9))
-    b = session.create("lamp", base=sessions_dir, today=date(2026, 10, 10))
-    c = session.create("nothing", base=sessions_dir, today=date(2026, 10, 10))
+def test_gallery_links_tiles_newest_first(models_dir):
+    root = models_dir.parent
+    a = models.create("cube", base=models_dir)
+    b = models.create("lamp", base=models_dir)
+    c = models.create("nothing", base=models_dir)
     a.render.write_bytes(png((0, 200, 0)))
     b.render.write_bytes(png((200, 0, 0)))
+    os.utime(a.render, (1, 1))  # b rendered most recently
 
     tiles = root / "docs" / "gallery"
-    md = gallery.gallery_markdown(session.list_all(sessions_dir), root, tiles)
+    md = gallery.gallery_markdown(models.list_all(models_dir), root, tiles)
     assert c.name not in md
-    assert f'<a href="sessions/{b.name}/notes.md">' in md
+    assert f'<a href="models/{b.name}/brief.md">' in md
     assert f'src="docs/gallery/{b.name}.png"' in md
     assert md.index(b.name) < md.index(a.name)
 
 
-def test_write_tiles_skips_unchanged(sessions_dir, tmp_path):
-    s = session.create("lamp", base=sessions_dir)
+def test_write_tiles_skips_unchanged(models_dir, tmp_path):
+    s = models.create("lamp", base=models_dir)
     s.render.write_bytes(png((0, 200, 0), alpha=0))
     tiles = tmp_path / "tiles"
     [tile] = gallery.write_tiles([s], tiles)
@@ -42,8 +44,8 @@ def test_write_tiles_skips_unchanged(sessions_dir, tmp_path):
     assert tile.read_bytes() != first
 
 
-def test_gallery_empty(sessions_dir):
-    root = sessions_dir.parent
+def test_gallery_empty(models_dir):
+    root = models_dir.parent
     assert "nothing" in gallery.gallery_markdown([], root, root / "tiles")
 
 

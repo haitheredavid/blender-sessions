@@ -42,5 +42,5 @@ Reference: `sessions/2026-10-10-wispy-witch-frame/builders/frame_geo.py`, `20_cl
 - **Changing the stack moves the clip and pocket positions.** Update any hard-coded view, camera and section targets too, or derive them from the constants.
 - **Stack thicknesses are assumptions** (2 mm acrylic, 3 mm board). Record them in notes and confirm with the user.
 
-## Sessions
-- 2026-10-10-wispy-witch-frame: 11×14" frame for 9×12" art; 9 mm rabbet (glazing, art on board, clip zone), 8 turn clips, 4 corner sections (139.7 × 177.8) for a 256 mm bed.
+## Models
+- wispy-witch-frame (2026-10-10): 11×14" frame for 9×12" art; 9 mm rabbet (glazing, art on board, clip zone), 8 turn clips, 4 corner sections (139.7 × 177.8) for a 256 mm bed.

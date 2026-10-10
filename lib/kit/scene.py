@@ -3,6 +3,7 @@
 import bpy
 
 MODEL, WORK, REF = "Model", "Work", "Ref"
+CONTROL, NOTES = "Control", "Notes"  # user-owned inputs; annotations (views only)
 
 
 def collection(
@@ -24,6 +25,20 @@ def model() -> bpy.types.Collection:
 
 def work() -> bpy.types.Collection:
     coll = collection(WORK)
+    coll.hide_render = True
+    return coll
+
+
+def control() -> bpy.types.Collection:
+    """User-owned inputs (curves, empties, GP sketches). Builders never clear it."""
+    coll = collection(CONTROL)
+    coll.hide_render = True
+    return coll
+
+
+def notes() -> bpy.types.Collection:
+    """Dimension lines and callouts; rendered only by views that include it."""
+    coll = collection(NOTES)
     coll.hide_render = True
     return coll
 
