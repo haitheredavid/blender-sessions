@@ -36,6 +36,17 @@ try:
 except TypeError:
     pass
 
+# Viewport clipping is in Blender units: at mm scale the default 1000 clip end is only
+# 1 m, so models vanish when zoomed out. Keep the metre defaults (1 cm to 1 km) in real
+# distance by scaling them with the units; the same ratio keeps depth precision.
+k = 1.0 / opts.scale_length
+for screen in bpy.data.screens:
+    for area in screen.areas:
+        for space in area.spaces:
+            if space.type == "VIEW_3D":
+                space.clip_start = 0.01 * k
+                space.clip_end = 1000.0 * k
+
 for name in (MODEL, WORK, REF):
     scene.collection.children.link(bpy.data.collections.new(name))
 # Work and Ref stay visible in the viewport but never render.

@@ -293,6 +293,42 @@ def render(
 
 
 @app.command()
+def views(
+    ref: SessionArg,
+    only: Annotated[
+        list[str] | None, typer.Option(help="Render just these view names.")
+    ] = None,
+) -> None:
+    """Render the session's [[views]] studio shots to out/views/<name>.png."""
+    s = _session(ref)
+    _need_blend(s)
+    try:
+        shots = s.views()
+    except ValueError as e:
+        console.print(f"[red]{escape(str(e))}[/red]")
+        raise typer.Exit(1)
+    if only:
+        if missing := set(only) - {v["name"] for v in shots}:
+            console.print(f"[red]no such view(s): {', '.join(sorted(missing))}[/red]")
+            raise typer.Exit(1)
+        shots = [v for v in shots if v["name"] in only]
+    if not shots:
+        console.print("[yellow]no [[views]] in session.toml[/yellow]")
+        raise typer.Exit(1)
+    out_dir = s.out / "views"
+    for v in shots:
+        args = _render_args(s, v["framing"], None)
+        args += ["--azimuth", str(v["azimuth"]), "--elevation", str(v["elevation"])]
+        args += ["--size", str(v["size"]), "--zoom", str(v["zoom"])]
+        args += ["--upright"] if v["upright"] else []
+        args += [a for c in v["include"] for a in ("--include", c)]
+        args += ["--target", *map(str, v["target"])] if v["target"] else []
+        out = out_dir / f"{v['name']}.png"
+        _run("render_studio.py", blend=s.blend, args=[*args, "--out", str(out)])
+        console.print(f"[green]rendered[/green] {out.relative_to(ROOT)}")
+
+
+@app.command()
 def turntable(
     ref: SessionArg,
     frames: Annotated[int | None, typer.Option(help="Default: [turntable].")] = None,

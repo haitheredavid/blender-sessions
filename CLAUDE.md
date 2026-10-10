@@ -49,6 +49,7 @@ blend new <name> [--unit m|cm|mm]    blend ls    blend open <s>    blend latest
 blend check <s> [--strict]           blend export <s> [--formats glb,fbx,obj] [--split]
 blend render <s> [--framing fit|wide] [--scene]   blend render-scene [--overwrite]
 blend turntable <s> [--frames --fps --size]       blend gallery
+blend views <s> [--only NAME]       # [[views]] in session.toml -> out/views/
 blend done <s>                       blend workflows
 ```
 `just wrap <s>` runs check, export and render in sequence.

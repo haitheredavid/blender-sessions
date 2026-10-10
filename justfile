@@ -67,6 +67,10 @@ render session *flags:
 turntable session *flags:
     {{blend}} turntable "$@"
 
+# render the session's [[views]] studio shots -> sessions/<s>/out/views/ (--only NAME)
+views session *flags:
+    {{blend}} views "$@"
+
 # build assets/studio.blend, the scene render/turntable use (--overwrite discards hand edits)
 render-scene *flags:
     {{blend}} render-scene "$@"

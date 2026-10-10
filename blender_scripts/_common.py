@@ -35,3 +35,19 @@ def model_objects(scene: bpy.types.Scene | None = None, types=("MESH",)) -> list
     coll = bpy.data.collections.get(MODEL)
     pool = coll.all_objects if coll and coll.all_objects else scene.objects
     return [o for o in pool if o.type in types and o.visible_get(view_layer=layer)]
+
+
+def collection_objects(
+    name: str, scene: bpy.types.Scene | None = None, types=("MESH",)
+) -> list:
+    """Visible objects of `types` in collection `name` (and its children); [] if missing."""
+    scene = scene or bpy.context.scene
+    layer = scene.view_layers[0]
+    coll = bpy.data.collections.get(name)
+    if coll is None:
+        return []
+    return [
+        o
+        for o in coll.all_objects
+        if o.type in types and o.visible_get(view_layer=layer)
+    ]

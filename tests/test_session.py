@@ -93,3 +93,21 @@ def test_render_and_export_options(sessions_dir):
         s.render_options()
     with pytest.raises(ValueError, match="formats"):
         s.export_formats()
+
+
+def test_views_defaults_and_validation(sessions_dir):
+    s = session.create("frame", base=sessions_dir)
+    s.toml.write_text(
+        s.toml.read_text()
+        + '\n[[views]]\nname = "front"\nupright = true\ninclude = ["Ref"]\n'
+        + '\n[[views]]\nname = "tip"\nzoom = 3\ntarget = [1, 2, 3]\n'
+    )
+    front, tip = s.views()
+    assert front["upright"] and front["include"] == ["Ref"]
+    assert (
+        front["framing"] == "fit" and front["zoom"] == 1.0 and front["target"] is None
+    )
+    assert tip["target"] == [1.0, 2.0, 3.0] and tip["zoom"] == 3.0
+    s.toml.write_text(s.toml.read_text() + '\n[[views]]\nname = "tip"\n')
+    with pytest.raises(ValueError, match="twice"):
+        s.views()

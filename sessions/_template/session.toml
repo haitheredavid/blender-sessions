@@ -17,6 +17,14 @@ formats = ["glb"]             # any of glb, fbx, obj
 # framing = "fit"             # fit: fill the frame; wide: show the floor around it
 # scene = "Scene"             # scene to render (default: the saved one)
 
+# [[views]]                   # `blend views` -> out/views/<name>.png; repeat per shot
+# name = "front"
+# azimuth = -90               # degrees around Z (-90 = from -Y); elevation 0..89
+# elevation = 0
+# upright = true              # stand the model up (+Z face toward the camera side, -Y)
+# include = ["Ref"]           # also render these collections' meshes (e.g. proxies)
+# zoom = 1.0                  # > 1 crops in on target ([x, y, z] in model coordinates)
+
 [turntable]                   # `blend turntable` -> out/<session>-turntable.mp4 + .gif
 frames = 120
 fps = 30

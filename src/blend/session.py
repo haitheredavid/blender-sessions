@@ -71,6 +71,39 @@ class Session:
             )
         return {"framing": framing, "scene": cfg.get("scene")}
 
+    def views(self) -> list[dict]:
+        """[[views]] for `blend views`: named studio shots, validated, with defaults."""
+        out, seen = [], set()
+        for i, cfg in enumerate(self.config.get("views", [])):
+            name = cfg.get("name")
+            if not name or not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", name):
+                raise ValueError(f"[[views]] #{i + 1}: name must be a lowercase slug")
+            if name in seen:
+                raise ValueError(f"[[views]] {name!r} is defined twice")
+            seen.add(name)
+            framing = cfg.get("framing", "fit")
+            if framing not in FRAMINGS:
+                raise ValueError(
+                    f"[[views]] {name!r}: framing must be one of {', '.join(FRAMINGS)}"
+                )
+            target = cfg.get("target")
+            if target is not None and len(target) != 3:
+                raise ValueError(f"[[views]] {name!r}: target must be [x, y, z]")
+            out.append(
+                {
+                    "name": name,
+                    "azimuth": float(cfg.get("azimuth", -60.0)),
+                    "elevation": float(cfg.get("elevation", 22.0)),
+                    "framing": framing,
+                    "upright": bool(cfg.get("upright", False)),
+                    "include": list(cfg.get("include", [])),
+                    "zoom": float(cfg.get("zoom", 1.0)),
+                    "target": [float(v) for v in target] if target else None,
+                    "size": int(cfg.get("size", 1200)),
+                }
+            )
+        return out
+
     def export_formats(self) -> list[str]:
         """[export] formats, validated against EXPORT_FORMATS."""
         formats = self.config.get("export", {}).get("formats", ["glb"])
