@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     lib_dir: Path = ROOT / "lib"
     workflows_dir: Path = ROOT / "workflows"
     studio_blend: Path = ROOT / "assets" / "studio.blend"
+    patterns_blend: Path = ROOT / "assets" / "patterns.blend"
 
 
 @lru_cache

@@ -3,6 +3,7 @@
 # Runs every builders/NN_*.py in name order (10_base.py, 20_details.py, ...), with the repo's
 # lib/ on sys.path and `kit` reloaded so helper edits apply without restarting Blender.
 # Model and Work are cleared and rebuilt; Control (user-owned inputs) and Ref are never touched.
+# params.toml [base] is applied last, so it wins over defaults set in the builders.
 import importlib
 import sys
 from pathlib import Path
@@ -25,6 +26,11 @@ scene.clear(scene.work())  # cutters/helpers are rebuilt by the builders too
 for step in sorted(HERE.glob("[0-9][0-9]_*.py")):
     exec(step.read_text(), {"__name__": step.stem, "__file__": str(step)})  # noqa: S102
     print(f"build_all: {step.name}")
+from kit import params
+
+res = params.apply("base")  # params.toml [base] -> GN inputs (the source of truth)
+if res["unused"]:
+    print(f"build_all: params with no matching GN input: {res['unused']}")
 scene.purge()
 scene.save()
 print("build_all ok")

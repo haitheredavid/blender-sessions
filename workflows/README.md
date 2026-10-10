@@ -12,3 +12,4 @@ Reusable Blender techniques distilled from sessions. Read the relevant ones befo
 | [print-fit-and-sectioning](print-fit-and-sectioning.md) | Rabbet stacks (glazing/art/board), turn-clip pockets, skin asserts, splitting for the printer bed |
 | [photo-to-texture](photo-to-texture.md) | Perspective-crop a handheld photo of flat art to a real-size texture; show it in Solid and Material views |
 | [render-views-and-sections](render-views-and-sections.md) | `blend views` named shots (upright, include, zoom), matching cameras, live red-capped section cut |
+| [gn-patterns](gn-patterns.md) | Model as GN pattern modifiers on a host, driven by Control curves and params.toml; variants via `params.grid` / `blend variants` |

@@ -81,6 +81,14 @@ turntable model *flags:
 views model *flags:
     {{blend}} views "$@"
 
+# render every params.toml variant with one shot -> models/<m>/out/variants.png (--view NAME)
+variants model *flags:
+    {{blend}} variants "$@"
+
+# build lib/patterns into assets/patterns.blend (GN groups as assets)
+patterns-lib:
+    {{blend}} patterns-lib
+
 # build assets/studio.blend, the scene render/turntable use (--overwrite discards hand edits)
 render-scene *flags:
     {{blend}} render-scene "$@"

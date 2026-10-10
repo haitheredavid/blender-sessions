@@ -1,5 +1,6 @@
 """`blend` command line."""
 
+import json
 import shutil
 import subprocess
 import tomllib
@@ -11,7 +12,7 @@ from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
 
-from blend import blender, gallery
+from blend import blender, gallery, grid
 from blend import model as models
 from blend.config import ROOT, get_settings
 from blend.steplog import StepLog
@@ -492,6 +493,74 @@ def turntable(
             raise typer.Exit(1)
     console.print(
         f"[green]wrote[/green] {mp4.relative_to(ROOT)}, {gif.name} ({frames} frames)"
+    )
+
+
+@app.command()
+def variants(
+    ref: ModelArg,
+    only: Annotated[
+        list[str] | None, typer.Option(help="Render just these variants.")
+    ] = None,
+    view: Annotated[
+        str | None,
+        typer.Option(help="Use this [[views]] shot (default: studio angle)."),
+    ] = None,
+    columns: Annotated[int, typer.Option(help="Grid columns.")] = 3,
+    size: Annotated[int, typer.Option(help="Cell size in px.")] = 600,
+) -> None:
+    """Render every params.toml variant with the same shot -> out/variants.png grid."""
+    s = _model(ref)
+    _need_blend(s)
+    try:
+        sets = s.variants()
+        shots = {v["name"]: v for v in s.views()}
+    except ValueError as e:
+        console.print(f"[red]{escape(str(e))}[/red]")
+        raise typer.Exit(1)
+    if only:
+        if missing := set(only) - set(sets):
+            console.print(
+                f"[red]no such variant(s): {', '.join(sorted(missing))}[/red]"
+            )
+            raise typer.Exit(1)
+        sets = {k: v for k, v in sets.items() if k in only}
+    if view and view not in shots:
+        console.print(f"[red]no [[views]] named {view!r}[/red]")
+        raise typer.Exit(1)
+    v = shots.get(view) if view else None
+    args = _render_args(s, v["framing"] if v else None, None)
+    if v:
+        args += ["--azimuth", str(v["azimuth"]), "--elevation", str(v["elevation"])]
+        args += ["--zoom", str(v["zoom"])] + (["--upright"] if v["upright"] else [])
+        args += [a for c in v["include"] for a in ("--include", c)]
+        args += ["--target", *map(str, v["target"])] if v["target"] else []
+    cells = []
+    for name, params in sets.items():
+        out = s.out / "variants" / f"{name}.png"
+        res = _run(
+            "render_studio.py",
+            blend=s.blend,
+            args=[*args, "--size", str(size), "--params", json.dumps(params),
+                  "--out", str(out)],
+        )  # fmt: skip
+        if res.get("unused_params"):
+            console.print(
+                f"[yellow]{name}: no GN input for {', '.join(res['unused_params'])}[/yellow]"
+            )
+        console.print(f"[green]rendered[/green] {out.relative_to(ROOT)}")
+        cells.append((name, out))
+    sheet = grid.compose(cells, s.out / "variants.png", columns)
+    console.print(f"[green]wrote[/green] {sheet.relative_to(ROOT)}")
+
+
+@app.command("patterns-lib")
+def patterns_lib() -> None:
+    """Build lib/patterns into assets/patterns.blend (node groups marked as assets)."""
+    path = get_settings().patterns_blend
+    res = _run("build_patterns.py", args=["--save", str(path)], factory_startup=True)
+    console.print(
+        f"[green]built[/green] {path.relative_to(ROOT)}: {', '.join(res['groups'])}"
     )
 
 

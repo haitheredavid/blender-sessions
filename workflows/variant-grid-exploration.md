@@ -7,6 +7,12 @@ Lay out parameter variants of a parametric builder side by side, look at them in
 - The user should choose. Show them a grid, not a description.
 
 ## Steps
+**GN models** (`workflows/gn-patterns.md`): put the options in `params.toml [variants.*]`. Then either:
+- **live**, run `from kit import params; params.grid()`, `look`, then `params.clear_grid()`; or
+- **rendered**, run `uv run blend variants <m> [--view NAME]`, which writes `out/variants.png`.
+
+The steps below are for bmesh builders, which have no modifier inputs.
+
 1. **Keep the geometry in a module** (`builders/<part>_geo.py`) with `params(**overrides)`, `validate(p)` and `build_bmesh(p)`. The NN builder and the explore script both import it.
 2. **Write `builders/explore.py`** with no NN_ prefix, so `build_all` skips it. Its `grid(rows, base)` builds each variant into an `Explore` collection, spaced by the model size plus a gap. It hides Model while exploring; `clear()` restores it.
 3. **Validate every variant** and print `INVALID <reason>` instead of building the bad ones. Constraint failures show up in the log, not in a render.

@@ -26,16 +26,18 @@ Conventions for how a model is built so it stays editable by hand and rebuildabl
 
 - One node group per pattern or part, named `GN_<Pattern>` (library) or `GN_<Model>_<Part>` (model-specific).
 - Expose every tunable as a group input with a human name ("Depth", "Rabbet Width"), a default, and min/max. Never leave magic numbers inside the tree.
-- Object inputs (e.g. "Profile", "Path") point at Control objects.
+- Object inputs (e.g. "Profile", "Path") point at Control objects, read in ORIGINAL space: the curve's points drive the shape, and the host object's transform places the result.
 - Set and read inputs **by socket name** through `kit.gn.set_input` / `get_input`. Never hardcode `Socket_N` identifiers.
+- Input names double as `params.toml` keys. Keep them unique across patterns (prefix like `Pocket Width`), or scope a key: `"Frame/Height"`.
 - Look nodes up by `bl_idname`/type, never by display name.
+- Reusable groups live in `lib/patterns/` (see `workflows/gn-patterns.md`).
 - Encode constraints as checks: a builder or `validate(p)` asserts min wall, envelope and clearances before showing a result.
 
 ## Params and variants
 
 - `params.toml [base]` holds the canonical params; `[variants.<v>]` holds overrides only.
-- `kit.params.apply(obj, variant)` pushes params into modifier inputs. Params are the source of truth; a hand-tuned input that should stick goes back into `params.toml`.
-- Compare variants as a grid (`workflows/variant-grid-exploration.md`), then let the user pick.
+- `kit.params.apply(variant_or_dict, objects=None)` pushes params into the modifier inputs of Model (or given) objects; `build_all.py` applies `[base]` last. Params are the source of truth; a hand-tuned input that should stick goes back into `params.toml`.
+- Compare variants live with `kit.params.grid()` or rendered with `blend variants <m>` (`workflows/variant-grid-exploration.md`), then let the user pick.
 
 ## Builders
 

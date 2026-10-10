@@ -14,7 +14,7 @@
 
 - **`src/blend/`**: host-side Python 3.13, typer CLI. It never imports bpy. It shells out to Blender through `blend.blender`.
 - **`blender_scripts/`**: runs inside Blender as `blender -b file.blend -P script.py -- --result out.json ...`.
-  - bpy/bmesh only; never import `blend`.
+  - bpy/bmesh only; never import `blend`. They may import `lib/kit` and `lib/patterns` (bpy-only) by putting `lib/` on `sys.path`.
   - Each script takes `--result` and writes JSON there. `_common.py` holds the shared arg and collection helpers.
 - **`lib/kit/`, `lib/patterns/`**: bpy helpers imported by builders and by live MCP code once `lib/` is on `sys.path`. Keep functions small, named by what they build, and idempotent where possible.
 - **Builders** (`models/<m>/builders/`): model-specific; promote generic helpers into `lib/`.

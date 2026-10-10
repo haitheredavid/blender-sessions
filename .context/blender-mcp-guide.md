@@ -26,6 +26,7 @@ How a session works with the live Blender instance through blender-mcp. Read thi
 - Avoid `bpy.ops` that need a UI context. Prefer data API calls. When an operator is unavoidable, use `bpy.context.temp_override(...)`.
 - Find shader and GN nodes **by type**, never by name; names are localized. Read enum identifiers from `bl_rna` instead of hardcoding them. Set `render.engine` inside `try/except TypeError`.
 - Material colour goes on shader node inputs. `diffuse_color` is viewport-only.
+- GN modifier inputs: use `kit.gn.set_input`/`get_input` by socket name. Blender 5 stores them in `mod.properties.inputs.<id>.value`, so `mod["Socket_N"]` raises.
 
 ## Look budget
 

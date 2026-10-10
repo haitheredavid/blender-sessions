@@ -3,7 +3,7 @@
 Usage: blender -b model.blend -P render_studio.py -- --studio assets/studio.blend --out render.png
        [--framing fit|wide] [--scene NAME] [--size 800] [--azimuth DEG --elevation DEG]
        [--frames N --fps 30] [--upright] [--include COLL ...] [--zoom 1.0]
-       [--target X Y Z] --result r.json
+       [--target X Y Z] [--params JSON] --result r.json
 
 Appends the `blend_studio` scene from studio.blend (build_studio.py), centres the model on
 the floor (XY centred, lowest point at z=0), scales the studio to the model and fits the
@@ -12,10 +12,13 @@ camera. `fit` fills the frame with the model; `wide` pulls back to show the floo
 --upright stands the model up (+Z face turned toward -Y), e.g. a frame as it hangs on a
 wall. --include adds visible meshes from other collections (e.g. Ref proxies). --zoom > 1
 crops in on --target (a point in the model's original coordinates; default its centre).
-Objects without materials render a neutral grey. Never saves the .blend.
+--params sets GN modifier inputs on the model first ({"Depth": 60}, as in params.toml;
+`blend variants` uses it). Objects without materials render a neutral grey. Never saves
+the .blend.
 """
 
 import argparse
+import json
 import math
 import sys
 from pathlib import Path
@@ -41,6 +44,7 @@ parser.add_argument("--upright", action="store_true")
 parser.add_argument("--include", action="append", default=[])
 parser.add_argument("--zoom", type=float, default=1.0)
 parser.add_argument("--target", type=float, nargs=3)
+parser.add_argument("--params", default="")
 opts = parse(parser)
 
 STUDIO_SCENE = "blend_studio"
@@ -51,6 +55,13 @@ if not objects:
     raise SystemExit("no visible mesh objects in the Model collection")
 for name in opts.include:
     objects += [o for o in collection_objects(name, src) if o not in objects]
+
+unused_params = []
+if opts.params:  # kit is bpy-only, so headless scripts may share it
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
+    from kit import params as kit_params
+
+    unused_params = kit_params.apply(json.loads(opts.params), objects)["unused"]
 
 grey = None
 for o in objects:
@@ -217,6 +228,7 @@ write_result(
     {
         "out": str(out),
         "objects": len(objects),
+        "unused_params": unused_params,
         "engine": sc.render.engine,
         "framing": opts.framing,
         "frames": opts.frames,
