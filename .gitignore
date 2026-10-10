@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# blend
+.env
+*.blend1
+*.blend@
+sessions/*/out/*
+!sessions/*/out/.gitkeep
+.DS_Store
+
+**/worktrees/
+# third-party reference images (not ours to publish)
+sessions/refs/
