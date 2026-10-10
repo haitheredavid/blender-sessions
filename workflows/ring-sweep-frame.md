@@ -46,7 +46,7 @@ u = Vector(
     (outward.y, -outward.x)
 )  # NOT "along" from the caller: half the corners mirror
 ```
-Full implementation: `sessions/2026-10-10-wispy-witch-frame/builders/frame_geo.py` (outline, `validate`, `build_bmesh`) and `20_clips.py` (pockets, pilots, clips).
+Full implementation: `models/wispy-witch-frame/builders/frame_geo.py` (outline, `validate`, `build_bmesh`) and `20_clips.py` (pockets, pilots, clips).
 
 ## Gotchas
 - **Lerping the face rings** from outline to sight rect works because both are star-shaped around the centre. A concave outline that folds back would self-intersect, so keep the sag modest relative to the side length.

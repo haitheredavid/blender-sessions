@@ -25,7 +25,7 @@ g["grid"](rows, base={"depth": 40})
 # ... look ...
 g["clear"]()
 ```
-Reference implementation: `sessions/2026-10-10-wispy-witch-frame/builders/explore.py`.
+Reference implementation: `models/wispy-witch-frame/builders/explore.py`.
 
 ## Gotchas
 - **Grid order:** row 0 sits at y=0, and later rows go to −y. From a front 3/4 view the *last* row is nearest the camera, so say which row is which when asking.

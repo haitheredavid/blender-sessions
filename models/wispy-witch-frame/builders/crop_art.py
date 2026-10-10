@@ -9,7 +9,7 @@ from pathlib import Path
 import bpy
 import numpy as np
 
-REFS = Path(__file__).parents[3] / "sessions/refs/wispy-witch-frame"
+REFS = Path(__file__).parents[3] / "refs/wispy-witch-frame"
 SRC, DST = REFS / "illustration.jpg", REFS / "illustration_crop.png"
 PPI = 200  # output resolution: 9x12" -> 1800 x 2400
 CORNERS = None

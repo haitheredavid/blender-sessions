@@ -6,7 +6,7 @@ Turn a handheld photo of a flat artwork or document into a flat, perspective-cor
 - You have a phone photo of a sheet on a cluttered background (couch, hand) and need it flat, cropped to the sheet edge, at known dimensions.
 
 ## Steps
-1. **Copy the photo** to `sessions/refs/<slug>/` (gitignored).
+1. **Copy the photo** to `refs/<slug>/` (gitignored).
 2. **Load it into numpy inside Blender:** `img.pixels.foreach_get` gives a float array, bottom-up. Flip it to top-down rows.
 3. **Build the sheet mask:**
    - Bright and low-saturation: `min > 0.62 and (max − min) < 0.2`.
@@ -35,7 +35,7 @@ for a in bpy.context.screen.areas:
     if a.type == "VIEW_3D":
         a.spaces.active.shading.color_type = "TEXTURE"  # check the enum first
 ```
-Reference: `sessions/2026-10-10-wispy-witch-frame/builders/crop_art.py` (detection, homography, border cleanup) and `30_proxies.py` (material and UVs).
+Reference: `models/wispy-witch-frame/builders/crop_art.py` (detection, homography, border cleanup) and `30_proxies.py` (material and UVs).
 
 ## Gotchas
 - **Solid mode ignores Generated coords and shows the material's viewport colour.** It needs UVs plus `color_type = "TEXTURE"`.

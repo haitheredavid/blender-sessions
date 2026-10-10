@@ -1,11 +1,11 @@
 name = "wispy-witch-frame"
 created = "2026-10-10"
 intent = "3D-printable shadow-box frame for a 9x12in witch illustration: concave bat-wing sides with flared corner tips, a face sloping from a thin outer edge into a deep sightwell, and a rabbet with turn clips for a 10x13in backboard."                   # what is this model, and what is it for?
-status = "done"               # active | done (`blend done` sets it)
-workflows = ["mcp-modeling-loop", "ring-sweep-frame", "variant-grid-exploration", "print-fit-and-sectioning", "photo-to-texture", "render-views-and-sections"]                # workflows/<name>.md used or written in this session
+status = "active"             # active | done (`blend model done` sets it)
+workflows = ["mcp-modeling-loop", "ring-sweep-frame", "variant-grid-exploration", "print-fit-and-sectioning", "photo-to-texture", "render-views-and-sections"]                # workflows/<name>.md used or written for this model
 tags = ["3d-print", "frame", "stylized", "parametric", "halloween"]                     # e.g. ["hard-surface", "prop", "low-poly"]
 
-[units]                       # applied by `blend new`; 1 Blender unit = 1 m by default
+[units]                       # applied by `blend model new`; 1 Blender unit = 1 m by default
 scale_length = 0.001            # 0.001 + length_unit = "MILLIMETERS" for mm-scale work
 length_unit = "MILLIMETERS"
 
@@ -17,7 +17,11 @@ split = true                 # one file per Model object instead of one combined
 # framing = "fit"             # fit: fill the frame; wide: show the floor around it
 # scene = "Scene"             # scene to render (default: the saved one)
 
-[turntable]                   # `blend turntable` -> out/<session>-turntable.mp4 + .gif
+[speckle]                     # filled by /checkpoint setup; see .context/speckle-guide.md
+# project_id = ""
+# models = { base = "" }        # Speckle model id per variant
+
+[turntable]                   # `blend turntable` -> out/<model>-turntable.mp4 + .gif
 frames = 120
 fps = 30
 

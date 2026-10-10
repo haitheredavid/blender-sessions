@@ -15,9 +15,6 @@ wheels/
 *.blend@
 models/*/out/*
 !models/*/out/.gitkeep
-# legacy, until sessions/ is migrated to models/
-sessions/*/out/*
-sessions/refs/
 .DS_Store
 
 **/worktrees/

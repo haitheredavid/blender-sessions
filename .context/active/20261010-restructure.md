@@ -2,7 +2,7 @@
 
 ## Progress
 - [x] Phase 0: context (AGENTS.md, CLAUDE.md shim, `.context/` guides)
-- [x] Phase 1: structure (code, template, skills, docs). **Pending:** migrate `sessions/2026-10-10-wispy-witch-frame` → `models/wispy-witch-frame` once Blender closes that file; move `sessions/refs/` → `refs/`; regenerate the gallery.
+- [x] Phase 1: structure + witch frame migrated to `models/wispy-witch-frame`, refs → `refs/`
 - [ ] Phase 2: parametric
 - [ ] Phase 3: Speckle (connector spike first)
 - [ ] Phase 4: expansions

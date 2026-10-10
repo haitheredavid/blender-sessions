@@ -2,6 +2,7 @@
 #   exec(open(bpy.path.abspath('//builders/build_all.py')).read(), {'__name__': 'build_all'})
 # Runs every builders/NN_*.py in name order (10_base.py, 20_details.py, ...), with the repo's
 # lib/ on sys.path and `kit` reloaded so helper edits apply without restarting Blender.
+# Model and Work are cleared and rebuilt; Control (user-owned inputs) and Ref are never touched.
 import importlib
 import sys
 from pathlib import Path
@@ -9,14 +10,16 @@ from pathlib import Path
 import bpy
 
 HERE = Path(bpy.path.abspath("//builders"))
-LIB = HERE.parents[2] / "lib"  # sessions/<s>/builders -> repo/lib
+LIB = HERE.parents[2] / "lib"  # models/<m>/builders -> repo/lib
 if str(LIB) not in sys.path:
     sys.path.insert(0, str(LIB))
-for name in sorted(n for n in sys.modules if n == "kit" or n.startswith("kit.")):
+for name in sorted(n for n in sys.modules if n.split(".")[0] in ("kit", "patterns")):
     importlib.reload(sys.modules[name])
 
 from kit import scene
 
+scene.control()  # make sure Control and Notes exist before builders look for them
+scene.notes()
 scene.clear(scene.model())
 scene.clear(scene.work())  # cutters/helpers are rebuilt by the builders too
 for step in sorted(HERE.glob("[0-9][0-9]_*.py")):

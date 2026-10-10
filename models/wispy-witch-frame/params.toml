@@ -1,0 +1,8 @@
+# GN inputs for this model. kit.params pushes [base] (merged with a variant's overrides)
+# into the matching modifier inputs by socket name. Keys are the GN input names.
+
+[base]
+# "Depth" = 40.0
+
+# [variants.deep]               # overrides only; every key must exist in [base]
+# "Depth" = 60.0
