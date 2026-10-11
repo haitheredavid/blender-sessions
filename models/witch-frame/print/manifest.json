@@ -1,13 +1,21 @@
 {
+  "schema": "print-spec/1",
   "model": "witch-frame",
-  "created": "2026-10-11T11:57:58-04:00",
+  "pack": "print",
+  "intent": "3D-printable shadow-box frame for a 9x12in witch illustration: concave bat-wing sides with flared corner tips, a face sloping from a thin outer edge into a deep sightwell, and a rabbet with turn clips for a 10x13in backboard.",
+  "created": "2026-10-11T14:02:09-04:00",
+  "source": {
+    "repo": "blender-sessions",
+    "commit": "921c1f6",
+    "blend": "models/witch-frame/model.blend"
+  },
   "units": "mm",
   "blend": "models/witch-frame/print/parts.blend",
   "stl_dir": "models/witch-frame/print/stl",
   "printer": "Bambu Lab P1S",
   "bed_mm": 256.0,
   "material": "PETG (Insignia, black)",
-  "orientation": "pieces as modelled, back face down (gable-roofed mortises print without bridging); clips flat; tenons laid on a side face",
+  "orientation": "pieces as modelled, back face down (gable-roofed mortises print without bridging); clips flat; tenons laid on a side face. Slice with supports on, build plate only (normal(auto), 0.2 mm top gap): the flat 3.7 mm glazing lip at z 9 (and the clip pockets' ceilings at z 4) sag without them (2026-10-11 coupon)",
   "hardware": [
     "8x M3x8 countersunk screws (turn clips), self-tapping into the 2.6 mm pilots"
   ],
@@ -29,7 +37,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Piece_TR.stl"
+      "stl": "stl/Piece_TR.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Piece_TL",
@@ -42,7 +59,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Piece_TL.stl"
+      "stl": "stl/Piece_TL.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Piece_BL",
@@ -55,7 +81,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Piece_BL.stl"
+      "stl": "stl/Piece_BL.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Piece_BR",
@@ -68,7 +103,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Piece_BR.stl"
+      "stl": "stl/Piece_BR.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Tenon_S",
@@ -81,7 +125,22 @@
       "manifold": true,
       "fits_bed": true,
       "flat": true,
-      "stl": "stl/Tenon_S.stl"
+      "fit": [
+        155.09999389648425,
+        161.09999389648425,
+        2.15,
+        10.249999999999988
+      ],
+      "stl": "stl/Tenon_S.stl",
+      "orientation": {
+        "mode": "flat",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Tenon_N",
@@ -94,7 +153,22 @@
       "manifold": true,
       "fits_bed": true,
       "flat": true,
-      "stl": "stl/Tenon_N.stl"
+      "fit": [
+        155.09999389648425,
+        159.39999389648426,
+        2.15,
+        10.149999999999986
+      ],
+      "stl": "stl/Tenon_N.stl",
+      "orientation": {
+        "mode": "flat",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Tenon_W",
@@ -107,7 +181,22 @@
       "manifold": true,
       "fits_bed": true,
       "flat": true,
-      "stl": "stl/Tenon_W.stl"
+      "fit": [
+        117.00000305175769,
+        120.80000305175768,
+        2.15,
+        10.249999999999988
+      ],
+      "stl": "stl/Tenon_W.stl",
+      "orientation": {
+        "mode": "flat",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Tenon_E",
@@ -120,7 +209,22 @@
       "manifold": true,
       "fits_bed": true,
       "flat": true,
-      "stl": "stl/Tenon_E.stl"
+      "fit": [
+        117.00000305175769,
+        120.50000305175769,
+        2.15,
+        10.349999999999987
+      ],
+      "stl": "stl/Tenon_E.stl",
+      "orientation": {
+        "mode": "flat",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Clip_01",
@@ -133,7 +237,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Clip_01.stl"
+      "stl": "stl/Clip_01.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Clip_02",
@@ -146,7 +259,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Clip_02.stl"
+      "stl": "stl/Clip_02.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Clip_03",
@@ -159,7 +281,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Clip_03.stl"
+      "stl": "stl/Clip_03.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Clip_04",
@@ -172,7 +303,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Clip_04.stl"
+      "stl": "stl/Clip_04.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Clip_05",
@@ -185,7 +325,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Clip_05.stl"
+      "stl": "stl/Clip_05.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Clip_06",
@@ -198,7 +347,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Clip_06.stl"
+      "stl": "stl/Clip_06.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Clip_07",
@@ -211,7 +369,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Clip_07.stl"
+      "stl": "stl/Clip_07.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     },
     {
       "name": "Clip_08",
@@ -224,7 +391,16 @@
       "manifold": true,
       "fits_bed": true,
       "flat": false,
-      "stl": "stl/Clip_08.stl"
+      "stl": "stl/Clip_08.stl",
+      "orientation": {
+        "mode": "as-modelled",
+        "rotate_deg": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "filament": 1
     }
   ],
   "plates_suggested": [
@@ -253,5 +429,7 @@
       "Piece_BR"
     ]
   ],
-  "total_volume_cm3": 361.9
+  "total_volume_cm3": 361.9,
+  "feedback_applied": [],
+  "feedback_declined": []
 }
