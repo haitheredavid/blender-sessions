@@ -1,11 +1,14 @@
 # GN_FrameLoft inputs (mm). build_all.py applies [base] last; `blend variants witch-frame`
 # renders every variant; kit.params.grid() lays them out live.
-# Base = the pick from the first session's explore grids: sharp horn tips, 15 mm bow,
-# 40 mm cove face (out/explore-edge.png, out/explore-depth.png).
+# Base = the first session's pick: the centre of the depth grid (40 mm, cove face;
+# out/explore-depth.png) with its modifications: sharp horn tips, 15 mm bow, 3 mm
+# hand-drawn wobble (seed 3), 12 mm outer edge, on the 11x14" envelope.
 
 [base]
 Sag = 15.0
 "Tip Shape" = 0.5
+Wobble = 3.0
+Seed = 3
 "Edge Height" = 12.0
 Depth = 40.0
 "Face Power" = 1.8

@@ -6,7 +6,7 @@
 - [x] Phase 2: parametric. `kit.gn`/`params`/`control`, three patterns, `assets/patterns.blend`, `blend variants`. Variants changed from one-scene-per-variant to: live `params.grid()` (object copies in Work/Variants) and headless `render_studio --params` per variant. That's simpler and needs no persistent scenes.
 - [x] Phase 3: Speckle. The connector was built from GitHub main and installed in 5.2. `kit.speckle` wraps publish_operation/load_operation with an explicit account (haitheredavid@gmail.com), and `/checkpoint` exists. The project is `blender-sessions` and models are named `<m>[/<variant>]`. First checkpoint: `witch-frame` version `23b410c176` (project stays public).
 - [x] Phase 4: expansions: `kit.gp` (sketch → curve), `kit.annotate` (live GN dimensions), `kit.anim` + `blend animate`, STL/3MF export.
-- [ ] Phase 5: witch frame review; delete this doc
+- [x] Phase 5: witch frame rebuilt on `frame_loft` (GN) with the first session's pick as base, plus 5 variants. Speckle b8a0881e09. Remaining model work (joinery) lives in the model's session notes.
 
 ## Notes since planning
 - `workflows/variant-grid-exploration.md` already covers the explore-grid technique (witch frame). Phase 2 variants build on it and don't replace it.

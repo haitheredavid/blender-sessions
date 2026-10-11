@@ -1,7 +1,7 @@
 """GN_FrameLoft: a picture frame lofted from a freeform outline into a rectangular opening.
 
 The outer edge follows a Control curve (reshape it by hand) plus a parametric inward bow
-per side (Sag, Tip Shape); the face slopes from a thin outer edge (Edge Height) up to the
+per side (Sag, Tip Shape) and an optional hand-drawn wobble (Wobble, Seed); the face slopes from a thin outer edge (Edge Height) up to the
 sight opening (Depth), shaped by Face Power (1 linear, >1 cove, <1 convex); behind the
 opening a rabbet (Rabbet Width/Height/Depth) seats glazing, art and backboard.
 
@@ -60,7 +60,7 @@ def build_band(reset: bool = False):
     """GN_LoftBand: Rows x (count+1) grid between two equal-count rings, Z shaped by
     Power; the extra column closes the loop and is merged by the caller."""
     t = gn.tree(BAND)
-    if t.nodes and not reset:
+    if gn.current(t, __file__) and not reset:
         return t
     t = gn.tree(BAND, reset=True)
     t.is_modifier = False
@@ -108,6 +108,7 @@ def build_band(reset: bool = False):
     gn.link(t, pos, "Vector", setp, "Position")
     gn.link(t, setp, "Geometry", gout, "Mesh")
     gn.arrange(t)
+    gn.stamp(t, __file__)
     return t
 
 
@@ -127,7 +128,7 @@ def _rect_ring(t, gin, width, height, w_out, h_out):
 
 def build(reset: bool = False):
     t = gn.tree(NAME)
-    if t.nodes and not reset:
+    if gn.current(t, __file__) and not reset:
         return t
     band = build_band(reset)
     t = gn.tree(NAME, reset=True)
@@ -139,6 +140,11 @@ def build(reset: bool = False):
     gn.input(
         t, "Tip Shape", "FLOAT", 0.7, min=0.05, description="<1 horn tips, >1 soft"
     )
+    gn.input(
+        t, "Wobble", "FLOAT", 0.0, min=0.0, subtype="DISTANCE",
+        description="Hand-drawn wiggle along each side (0 at the tips)",
+    )  # fmt: skip
+    gn.input(t, "Seed", "INT", 3, description="Wobble pattern")
     gn.input(t, "Edge Height", "FLOAT", 12.0, min=0.0, subtype="DISTANCE")
     gn.input(t, "Depth", "FLOAT", 40.0, min=0.0, subtype="DISTANCE")
     gn.input(
@@ -201,7 +207,32 @@ def build(reset: bool = False):
     sine = _math(t, "SINE", _math(t, "MULTIPLY", frac, value=3.141592653589793))
     bow = _math(t, "MULTIPLY", gin, _math(t, "POWER", sine, gin, b_out="Tip Shape"),
                 a_out="Sag")  # fmt: skip
-    offset = _vmath(t, "SCALE", _vmath(t, "NORMALIZE", inward), scale=(bow, "Value"))
+    # wobble: Wobble * sin(pi t) * sum(amp sin(f pi t + phase)) / 2, f = 2, 3, 5, with a
+    # random amp/phase per side and harmonic (the bmesh frame_geo outline, ported)
+    side = _math(t, "FLOOR", _math(t, "DIVIDE", idx, gin, b_out="Samples"))
+    noise = None
+    for k, freq in enumerate((2, 3, 5)):
+        ident = _math(t, "MULTIPLY_ADD", side, value=3.0)
+        ident.inputs[2].default_value = float(k)
+        rnd = {}
+        for key, lo, hi, salt in (
+            ("phase", 0.0, 6.283185307179586, 0),
+            ("amp", 0.5, 1.0, 97),
+        ):
+            r = gn.node(t, "FunctionNodeRandomValue", props={"data_type": "FLOAT"})
+            r.inputs["Min"].default_value, r.inputs["Max"].default_value = lo, hi
+            salted = _math(t, "ADD", ident, value=float(salt))
+            gn.link(t, salted, "Value", r, "ID")
+            gn.link(t, gin, "Seed", r, "Seed")
+            rnd[key] = r
+        arg = _math(t, "ADD", _math(t, "MULTIPLY", frac, value=freq * 3.141592653589793),
+                    rnd["phase"], b_out="Value")  # fmt: skip
+        term = _math(t, "MULTIPLY", _math(t, "SINE", arg), rnd["amp"], b_out="Value")
+        noise = term if noise is None else _math(t, "ADD", noise, term)
+    wob = _math(t, "MULTIPLY", _math(t, "MULTIPLY", gin, sine, a_out="Wobble"), noise)
+    half = _math(t, "MULTIPLY", wob, value=0.5)
+    total = _math(t, "ADD", bow, half)
+    offset = _vmath(t, "SCALE", _vmath(t, "NORMALIZE", inward), scale=(total, "Value"))
     outline = gn.node(t, "GeometryNodeSetPosition")
     gn.link(t, onto, "Geometry", outline, "Geometry")
     gn.link(t, offset, 0, outline, "Offset")
@@ -248,6 +279,7 @@ def build(reset: bool = False):
     gn.link(t, gin, "Material", mat, "Material")
     gn.link(t, mat, "Geometry", gout, "Geometry")
     gn.arrange(t)
+    gn.stamp(t, __file__)
     return t
 
 

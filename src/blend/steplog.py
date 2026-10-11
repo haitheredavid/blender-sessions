@@ -1,7 +1,7 @@
 """Step log: every iteration step of a model, kept verbatim.
 
 models/<m>/log/steps.jsonl has one JSON line per step; log/NNN-<slug>.py holds the code that
-ran. Builders are the distilled rebuild; the log is the raw, layered history between them.
+ran (or another snapshot, e.g. .toml params). Builders are the distilled rebuild; the log is the raw, layered history between them.
 """
 
 import json
@@ -49,15 +49,17 @@ class StepLog:
         params: dict | None = None,
         speckle_version: str | None = None,
         now: datetime | None = None,
+        suffix: str = ".py",
     ) -> Step:
-        """Record a step; its code (if any) goes to log/NNN-<slug>.py."""
+        """Record a step; its code (if any) goes to log/NNN-<slug><suffix> (.py, or e.g.
+        .toml for a params snapshot)."""
         entries = self.entries()
         n = entries[-1].n + 1 if entries else 1
         slug = slugify(slug)
         self.dir.mkdir(exist_ok=True)
         code_name = None
         if code is not None:
-            code_name = f"{n:03d}-{slug}.py"
+            code_name = f"{n:03d}-{slug}{suffix}"
             header = f"# step {n}: {intent}\n" if intent else ""
             (self.dir / code_name).write_text(header + code.rstrip() + "\n")
         if session is None and (note := self.model.latest_session()):

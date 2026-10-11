@@ -258,6 +258,7 @@ def step(
         name,
         intent=intent,
         code=code_file.read_text() if code_file else None,
+        suffix=code_file.suffix if code_file and code_file.suffix else ".py",
         objects=obj,
         params=params,
         speckle_version=speckle_version,

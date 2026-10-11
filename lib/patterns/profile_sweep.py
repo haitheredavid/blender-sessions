@@ -12,7 +12,7 @@ NAME = "GN_ProfileSweep"
 
 def build(reset: bool = False):
     t = gn.tree(NAME)
-    if t.nodes and not reset:
+    if gn.current(t, __file__) and not reset:
         return t
     t = gn.tree(NAME, reset=True)
     gn.input(t, "Geometry", "GEOMETRY")
@@ -37,6 +37,7 @@ def build(reset: bool = False):
     gn.link(t, gin, "Smooth", smooth, "Shade Smooth")
     gn.link(t, smooth, "Mesh", gout, "Geometry")
     gn.arrange(t)
+    gn.stamp(t, __file__)
     return t
 
 

@@ -54,7 +54,7 @@ Models are resolved by name (`kit.speckle.ensure_model`), so no ids need storing
 - **Load:** `connector.operations.load_operation.load_operation(context, account_id, project_id, model_id, version_id, name)`.
 - **Client:** `connector.speckle_api.client_cache.get_client(account_id)` returns a specklepy client, used for models, versions and creating.
 - The connector's `create_project` makes **public** workspace projects. Create projects through the client (`client.project.create(ProjectCreateInput(..., visibility=PRIVATE))`) if a new one is ever needed.
-- The connector repo's `tools/headless_export.py` shows publish conversion without the UI. It's the starting point if a headless `blend push` is ever needed.
+- **Headless works:** `blender -b model.blend -P script.py` loads user extensions, so `kit.speckle.publish` runs without the GUI (used when Blender is closed). The connector pre-warms its *default* account's client on load. That's harmless, because publish always passes the chosen account id.
 
 ## Comparing versions
 

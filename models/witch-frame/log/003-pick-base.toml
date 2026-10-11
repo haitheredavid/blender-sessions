@@ -1,0 +1,33 @@
+# step 3: base = first session's pick (centre of depth grid: 40 mm cove) + sharp tips, 15 mm bow, 3 mm wobble seed 3; wobble ported to GN
+# GN_FrameLoft inputs (mm). build_all.py applies [base] last; `blend variants witch-frame`
+# renders every variant; kit.params.grid() lays them out live.
+# Base = the first session's pick: the centre of the depth grid (40 mm, cove face;
+# out/explore-depth.png) with its modifications: sharp horn tips, 15 mm bow, 3 mm
+# hand-drawn wobble (seed 3), 12 mm outer edge, on the 11x14" envelope.
+
+[base]
+Sag = 15.0
+"Tip Shape" = 0.5
+Wobble = 3.0
+Seed = 3
+"Edge Height" = 12.0
+Depth = 40.0
+"Face Power" = 1.8
+
+[variants.shallow]
+Depth = 28.0
+
+[variants.deep]
+Depth = 60.0
+
+[variants.soft-tips]
+"Tip Shape" = 1.4
+Sag = 12.0
+
+[variants.convex]
+"Face Power" = 0.6
+
+[variants.angled]
+"Edge Height" = 14.0
+Depth = 50.0
+"Face Power" = 1.0

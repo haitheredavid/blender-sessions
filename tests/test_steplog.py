@@ -39,3 +39,12 @@ def test_speckle_version_attaches_to_latest_or_n(models_dir):
     assert [s.speckle_version for s in log.entries()] == ["v1", "v2"]
     with pytest.raises(LookupError):
         log.set_speckle_version("x", n=9)
+
+
+def test_snapshot_keeps_its_suffix(models_dir):
+    log = StepLog(models.create("frame", base=models_dir))
+    st = log.append(
+        "params", intent="pick", code="Depth = 40.0", suffix=".toml", now=NOW
+    )
+    assert st.code == "001-params.toml"
+    assert (log.dir / st.code).read_text() == "# step 1: pick\nDepth = 40.0\n"

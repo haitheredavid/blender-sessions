@@ -43,6 +43,23 @@ def tree(name: str, reset: bool = False) -> bpy.types.GeometryNodeTree:
     return t
 
 
+def current(t, source: str) -> bool:
+    """True if group t was built from this exact source file (see stamp()). Pattern
+    builders use it so editing a pattern rebuilds its group in every .blend that runs it."""
+    return bool(t.nodes) and t.get("source_hash") == _hash(source)
+
+
+def stamp(t, source: str) -> None:
+    t["source_hash"] = _hash(source)
+
+
+def _hash(source: str) -> str:
+    import hashlib
+
+    with open(source, "rb") as f:
+        return hashlib.sha1(f.read()).hexdigest()[:12]
+
+
 def _items(t, in_out: str) -> dict:
     return {
         i.name: i
