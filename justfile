@@ -65,7 +65,7 @@ history model *flags:
 check model *flags:
     {{blend}} check "$@"
 
-# export the Model collection to exports/ (--formats glb,fbx,obj --split)
+# export the Model collection to exports/ (--formats glb,fbx,obj,stl,3mf --split)
 export model *flags:
     {{blend}} export "$@"
 
@@ -76,6 +76,10 @@ render model *flags:
 # 360° turntable -> models/<m>/out/<m>-turntable.mp4 + .gif
 turntable model *flags:
     {{blend}} turntable "$@"
+
+# render the scene's own animation (kit.anim keys) -> models/<m>/out/animation.mp4 + .gif
+animate model *flags:
+    {{blend}} animate "$@"
 
 # render the model's [[views]] studio shots -> models/<m>/out/views/ (--only NAME)
 views model *flags:

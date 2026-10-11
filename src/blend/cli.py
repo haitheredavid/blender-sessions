@@ -367,7 +367,9 @@ def export(
     ref: ModelArg,
     formats: Annotated[
         str | None,
-        typer.Option(help="Comma-separated glb,fbx,obj (default: [export] formats)."),
+        typer.Option(
+            help="Comma-separated glb,fbx,obj,stl,3mf (default: [export] formats)."
+        ),
     ] = None,
     split: Annotated[
         bool | None, typer.Option(help="One file per Model object.")
@@ -466,10 +468,7 @@ def turntable(
     """360° studio turntable -> out/<model>-turntable.mp4 + .gif (needs ffmpeg)."""
     s = _model(ref)
     _need_blend(s)
-    ffmpeg = get_settings().ffmpeg_bin
-    if not shutil.which(ffmpeg):
-        console.print(f"[red]{ffmpeg} not found (brew install ffmpeg)[/red]")
-        raise typer.Exit(1)
+    _ffmpeg()
     opts = s.turntable_options()
     frames, fps = frames or opts["frames"], fps or opts["fps"]
     frames_dir = s.out / "turntable"
@@ -478,21 +477,86 @@ def turntable(
     args += ["--out", str(frames_dir), "--frames", str(frames), "--fps", str(fps)]
     _run("render_studio.py", blend=s.blend, args=[*args, "--size", str(size)])
     mp4 = s.out / f"{s.name}-turntable.mp4"
-    gif = mp4.with_suffix(".gif")
+    _encode(frames_dir, mp4, fps, start=1)
+    console.print(
+        f"[green]wrote[/green] {mp4.relative_to(ROOT)}, {mp4.with_suffix('.gif').name} "
+        f"({frames} frames)"
+    )
+
+
+def _ffmpeg() -> str:
+    ffmpeg = get_settings().ffmpeg_bin
+    if not shutil.which(ffmpeg):
+        console.print(f"[red]{ffmpeg} not found (brew install ffmpeg)[/red]")
+        raise typer.Exit(1)
+    return ffmpeg
+
+
+def _encode(frames_dir: Path, mp4: Path, fps: int, start: int) -> None:
+    """frames_dir/f%04d.png (numbered from start) -> mp4 + a looping gif beside it."""
+    ffmpeg = _ffmpeg()
     pattern = str(frames_dir / "f%04d.png")
     for cmd in (
-        [ffmpeg, "-y", "-loglevel", "error", "-framerate", str(fps), "-i", pattern,
+        [ffmpeg, "-y", "-loglevel", "error", "-framerate", str(fps),
+         "-start_number", str(start), "-i", pattern,
          "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", str(mp4)],
         [ffmpeg, "-y", "-loglevel", "error", "-i", str(mp4), "-vf",
          "fps=15,scale=480:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse",
-         "-loop", "0", str(gif)],
+         "-loop", "0", str(mp4.with_suffix(".gif"))],
     ):  # fmt: skip
         proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
         if proc.returncode:
             console.print(f"[red]ffmpeg failed:[/red] {escape(proc.stderr.strip())}")
             raise typer.Exit(1)
+
+
+@app.command()
+def animate(
+    ref: ModelArg,
+    start: Annotated[
+        int | None, typer.Option(help="Default: the scene's start.")
+    ] = None,
+    end: Annotated[int | None, typer.Option(help="Default: the scene's end.")] = None,
+    fps: Annotated[int, typer.Option(help="Frames per second.")] = 24,
+    view: Annotated[str | None, typer.Option(help="Use this [[views]] angle.")] = None,
+    size: Annotated[int, typer.Option(help="Frame size in px.")] = 720,
+    name: Annotated[str, typer.Option(help="Output name in out/.")] = "animation",
+) -> None:
+    """Render the scene's own animation (keyed params, exploded views) in the studio
+    -> out/<name>.mp4 + .gif. Key it with kit.anim, save, then run this."""
+    s = _model(ref)
+    _need_blend(s)
+    _ffmpeg()
+    if start is None or end is None:
+        rng = _run("scene_info.py", blend=s.blend)
+        start = rng["frame_start"] if start is None else start
+        end = rng["frame_end"] if end is None else end
+    if end <= start:
+        console.print(f"[red]nothing to animate: frames {start}..{end}[/red]")
+        raise typer.Exit(1)
+    try:
+        shots = {v["name"]: v for v in s.views()}
+    except ValueError as e:
+        console.print(f"[red]{escape(str(e))}[/red]")
+        raise typer.Exit(1)
+    if view and view not in shots:
+        console.print(f"[red]no [[views]] named {view!r}[/red]")
+        raise typer.Exit(1)
+    v = shots.get(view) if view else None
+    args = _render_args(s, v["framing"] if v else None, None)
+    if v:
+        args += ["--azimuth", str(v["azimuth"]), "--elevation", str(v["elevation"])]
+        args += ["--upright"] if v["upright"] else []
+        args += [a for c in v["include"] for a in ("--include", c)]
+    frames_dir = s.out / name
+    shutil.rmtree(frames_dir, ignore_errors=True)
+    args += ["--animate", str(start), str(end), "--fps", str(fps), "--size", str(size)]
+    _run("render_studio.py", blend=s.blend, args=[*args, "--out", str(frames_dir)])
+    mp4 = s.out / f"{name}.mp4"
+    _encode(frames_dir, mp4, fps, start=start)
     console.print(
-        f"[green]wrote[/green] {mp4.relative_to(ROOT)}, {gif.name} ({frames} frames)"
+        f"[green]wrote[/green] {mp4.relative_to(ROOT)}, {mp4.with_suffix('.gif').name} "
+        f"(frames {start}-{end})"
     )
 
 

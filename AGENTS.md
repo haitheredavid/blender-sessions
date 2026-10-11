@@ -38,7 +38,7 @@ Durable context lives in `.context/` (conventions in `.context/README.md`):
 
 ## Commands
 
-Run `just` to list recipes. Key ones: `just ci`, `just fmt`, `just open <m>`, `just check|export|render|views|turntable <m>`, `just wrap <m>`. The full CLI is `uv run blend --help`.
+Run `just` to list recipes. Key ones: `just ci`, `just fmt`, `just open <m>`, `just session <m> <slug>`, `just history <m>`, `just check|export|render|views|variants|animate|turntable <m>`, `just wrap <m>`. The full CLI is `uv run blend --help`.
 
 ## Standards
 

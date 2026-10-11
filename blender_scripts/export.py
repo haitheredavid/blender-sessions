@@ -1,10 +1,12 @@
-"""Export the Model collection to GLB / FBX / OBJ (modifiers applied).
+"""Export the Model collection to GLB / FBX / OBJ / STL / 3MF (modifiers applied).
 
 Usage: blender -b model.blend -P export.py -- --outdir exports --name NAME
-       [--formats glb,fbx,obj] [--split] --result r.json
+       [--formats glb,fbx,obj,stl,3mf] [--split] --result r.json
 
 Default: one file per format with every Model object in it. --split writes one file per
-object (NAME is ignored; files are named after the objects).
+object (NAME is ignored; files are named after the objects). STL is written in Blender
+units (an mm model gives mm), which is what slicers expect. 3MF needs a 3MF exporter
+add-on enabled in Blender; it fails with a clear message otherwise.
 """
 
 import argparse
@@ -66,6 +68,18 @@ def export(fmt: str, path: Path) -> None:
             forward_axis="NEGATIVE_Z",
             up_axis="Y",
         )
+    elif fmt == "stl":
+        bpy.ops.wm.stl_export(
+            filepath=str(path),
+            export_selected_objects=True,
+            apply_modifiers=True,
+            ascii_format=False,
+        )
+    elif fmt == "3mf":
+        op = getattr(bpy.ops.export_mesh, "threemf", None)
+        if op is None or not op.poll():
+            raise SystemExit("3mf: enable a 3MF exporter add-on in Blender first")
+        op(filepath=str(path), use_selection=True)
     else:
         raise SystemExit(f"unknown format {fmt!r}")
 

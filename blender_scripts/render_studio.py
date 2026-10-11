@@ -3,7 +3,7 @@
 Usage: blender -b model.blend -P render_studio.py -- --studio assets/studio.blend --out render.png
        [--framing fit|wide] [--scene NAME] [--size 800] [--azimuth DEG --elevation DEG]
        [--frames N --fps 30] [--upright] [--include COLL ...] [--zoom 1.0]
-       [--target X Y Z] [--params JSON] --result r.json
+       [--target X Y Z] [--params JSON] [--animate START END] --result r.json
 
 Appends the `blend_studio` scene from studio.blend (build_studio.py), centres the model on
 the floor (XY centred, lowest point at z=0), scales the studio to the model and fits the
@@ -12,6 +12,8 @@ camera. `fit` fills the frame with the model; `wide` pulls back to show the floo
 --upright stands the model up (+Z face turned toward -Y), e.g. a frame as it hangs on a
 wall. --include adds visible meshes from other collections (e.g. Ref proxies). --zoom > 1
 crops in on --target (a point in the model's original coordinates; default its centre).
+--animate START END renders the scene's own animation (keyed GN inputs, exploded views)
+over that range as PNG frames to --out, framed at END.
 --params sets GN modifier inputs on the model first ({"Depth": 60}, as in params.toml;
 `blend variants` uses it). Objects without materials render a neutral grey. Never saves
 the .blend.
@@ -45,6 +47,7 @@ parser.add_argument("--include", action="append", default=[])
 parser.add_argument("--zoom", type=float, default=1.0)
 parser.add_argument("--target", type=float, nargs=3)
 parser.add_argument("--params", default="")
+parser.add_argument("--animate", type=int, nargs=2, metavar=("START", "END"))
 opts = parse(parser)
 
 STUDIO_SCENE = "blend_studio"
@@ -88,6 +91,19 @@ for o in objects:
     sc.collection.objects.link(o)
 roots = [o for o in objects if o.parent not in objects]
 studio_layer = sc.view_layers[0]
+if opts.animate:  # place and frame on the end state (e.g. fully exploded)
+    sc.frame_start, sc.frame_end = opts.animate
+    sc.frame_set(opts.animate[1])
+# Placement (upright, centring) goes on an offset empty above the roots rather than into
+# their own transforms, so keyframed object motion (--animate) keeps the placement.
+offset = bpy.data.objects.new("studio_offset", None)
+sc.collection.objects.link(offset)
+studio_layer.update()
+for o in roots:
+    mw = o.matrix_world.copy()
+    o.parent = offset
+    o.matrix_parent_inverse.identity()
+    o.matrix_world = mw
 
 
 def world_points(objs) -> np.ndarray:
@@ -110,21 +126,16 @@ if opts.upright:
     stand = Matrix.Rotation(
         math.radians(90), 4, "X"
     )  # +Z face -> -Y (toward the front)
-    for o in roots:
-        o.matrix_world = stand @ o.matrix_world
+    offset.matrix_world = stand @ offset.matrix_world
     target = stand @ target if target else None
 
 # centre on the floor: XY centred, lowest point at z=0
 pts = world_points(objects)
 lo, hi = pts.min(0), pts.max(0)
 shift = Matrix.Translation((-(lo[0] + hi[0]) / 2, -(lo[1] + hi[1]) / 2, -lo[2]))
-for o in roots:
-    o.matrix_world = shift @ o.matrix_world
+offset.matrix_world = shift @ offset.matrix_world
 target = shift @ target if target else None
-for o in roots:
-    mw = o.matrix_world.copy()
-    o.parent = pivot
-    o.matrix_world = mw
+offset.parent = pivot
 pts = world_points(objects)
 size = pts.max(0) - pts.min(0)
 
@@ -207,7 +218,12 @@ for _ in range(8):
 
 sc.render.resolution_x = sc.render.resolution_y = opts.size
 out = Path(opts.out).resolve()
-if opts.frames > 0:
+if opts.animate:
+    sc.render.fps = opts.fps
+    out.mkdir(parents=True, exist_ok=True)
+    sc.render.filepath = str(out / "f####")
+    bpy.ops.render.render(animation=True, scene=sc.name)
+elif opts.frames > 0:
     sc.frame_start, sc.frame_end = 1, opts.frames
     sc.render.fps = opts.fps
     # a simple-expression driver (no Python auto-exec needed); frame N sits one step
