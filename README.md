@@ -4,7 +4,7 @@
 
 ## what
 
-I used to model everything by hand in rhino, one click at a time. Now an agent drives a live Blender through [blender-mcp](https://github.com/ahujasid/blender-mcp) while I sit next to it, poke at things and tell it when it's being stupid. Sometimes it tells me the same thing.
+I originally learned to model in rhino, but I never upgraded from rhino 7, and apparently they stopped supporting it on newer macOS with non-intel chips. So I moved over to Blender, because it works and it's free. But I really don't want to learn another modeling tool and all the stupid fucking buttons I'd need to dance around. In comes claudia and [blender-mcp](https://github.com/ahujasid/blender-mcp).
 
 So, here's what this fucking thing does right now:
 
