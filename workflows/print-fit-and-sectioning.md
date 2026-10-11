@@ -7,7 +7,7 @@ Size a 3D-printed enclosure or frame around real parts: a rabbet stack, turn-cli
 - The part exceeds the bed and must be split.
 
 ## Steps
-1. **Model in mm** (`blend new <s> --unit mm`), 1 BU = 1 mm, back face on z=0. That is also the print orientation: face up, so a sloped top needs no supports.
+1. **Model in mm** (`blend new <s> --unit mm`), 1 BU = 1 mm, back face on z=0. That is also the print orientation: face up, so a sloped top needs no supports. The glazing lip's underside is the exception (see Gotchas).
 2. **Define the stack as constants** in the geometry module and derive everything from them:
    - Sheet sizes: `ART`, `BACKBOARD`, `GLAZING` as (w, h, t). `CLIP_ZONE` for the clips.
    - Rabbet footprint: the largest sheet + 0.5 mm clearance per side.
@@ -53,10 +53,11 @@ Reference: `models/witch-frame/builders/frame_geo.py`, `20_clips.py`, `joinery.p
    - Build each prism with `bmesh.ops.convex_hull` over the section's two end rings, then `dissolve_limit` to get flat n-gons, then `bevel` for the chamfer.
    - Assert a minimum tenon thickness, so a frame edit that starves a seam fails loudly.
 4. **Seam back chamfer:** cut a 45° wedge (0.4 mm) under each seam plane along the back face, so first-layer squish can't hold the seam open. Use one wedge per rail, so the cutter doesn't self-intersect where the seams cross. Give its top a 0.1 mm land instead of an apex, so no cutter edge lies on the seam plane.
-5. **Clearance coupon before the frame:** cut the worst seam (the thinnest tenon) short with `section_piece`. Use 2 × (tenon/2 + end gap + 4 mm) along the seam, trim a few mm above the mortise, and make one coupon per clearance (0.10 / 0.15 / 0.20). Mark each with 1/2/3 notches cut by the same cutter. Keep the coupons in their own collection beside the model and pack them with `blend print-pack <m> --collection Coupon`. Store each tenon's fit on the tenon (`tenon["fit"]`) so the coupon reuses it exactly.
+5. **Clearance coupon before the frame:** cut the worst seam (the thinnest tenon) short with `section_piece`. Use 2 × (tenon/2 + end gap + 4 mm) along the seam, trim a few mm above the mortise, and make one coupon per clearance (0.10 / 0.15 / 0.20). Mark each with 1/2/3 notches cut by the same cutter. Keep the coupons in their own collection beside the model and pack them with `blend print-pack <m> --collection Coupon`. Store each tenon's fit on the tenon (`tenon["fit"]`) so the coupon reuses it exactly. Declare the coupon in `[[print.coupon]]` (`id`, `param` = the clearance constant, `values`, `parts` globs per value, `rule`; see `print-handoff.md`). After printing, `bambi log fit <pack> --coupon <id> --value 0.10` records the pick and proposes the `param` change, which `just print-results <m> --pack coupon` shows for you to apply.
 6. Clips and other shared parts can be linked into Print as well as Model (one object, two collections). When rebuilding Print, unlink shared objects; only delete Print-only ones.
 
 ## Gotchas
+- **Printed back face down, the glazing lip is a flat cantilever.** Its underside (overlap + clearance, 3.7 mm at z = rabbet depth) has nothing under it and prints as sagging strands with supports off. Slice with supports on, build plate only (Bambu `normal(auto)`, 0.2 mm top gap) and say so in `[print] orientation` so the pack README tells the printing agent. A 45° wedge filling the rabbet corner prints with no supports, but it takes the glazing's flat seat: the stack drops by about the overlap, so you'd need a deeper rabbet. Test both on one coupon plate (`COUPONS = ((0.10, "Flat"), (0.10, "Chamfer"))`, `lip_wedge` in the reference builder). On witch-frame both printed fine, and flat + supports won.
 - **A flat mortise roof bridges, and a bridge sags into the clearance.** A 3-6 mm bridge droops about 0.1-0.2 mm, which is as much as the clearance. Use a 45° gable roof on the mortise and the tenon, and re-fit with the apex included.
 - **A recess in a narrow face leaves thin fins.** Butterfly keys in an 8 mm back strip left 1.07 mm walls beside a 9 mm-deep rabbet (0.7 at a mouth flare). Measure the walls, then move the joint into the seam faces (loose tenon).
 - **A cutter vertex on a section plane gives degenerate boolean faces.** A fillet whose middle vertex landed on x=0 (the seam) left zero-area slivers. Use odd arc segment counts, or offset the cutter off the plane.
@@ -67,6 +68,7 @@ Reference: `models/witch-frame/builders/frame_geo.py`, `20_clips.py`, `joinery.p
 - **Stack thicknesses are assumptions** (2 mm acrylic, 3 mm board). Record them in notes and confirm with the user.
 
 ## Models
+- witch-frame (2026-10-11, ledge-support): the coupon's flat glazing lip sagged with supports off. Round 2 (0.10 Flat vs 45° Chamfer, `builders/45_coupon.py`) printed both fine; the frame keeps the flat lip and is sliced with build-plate supports.
 - witch-frame (2026-10-11, print-joinery): gable mortises and tenons (9.9-11.0 tall), a 0.4 seam back chamfer, and an E-seam clearance coupon (3 × 2 offcuts + tenon, 17.6 cm³).
 - witch-frame (2026-10-11, key-tolerances): butterfly keys -> loose tenons fitted to each seam profile with 2 mm walls (3.4-6.0 x 8.2-8.4 x 32 mm).
 - witch-frame (2026-10-10, joinery): live GN_SectionPiece corner pieces + per-seam-fitted butterfly keys; Print collection export.
