@@ -19,7 +19,7 @@ FRAMINGS = (
     "fit",
     "wide",
 )  # `blend render`: zoom to the model, or pull back for context
-EXPORT_FORMATS = ("glb", "fbx", "obj")
+EXPORT_FORMATS = ("glb", "fbx", "obj", "stl", "3mf")
 EXPORT_SUFFIXES = {f".{f}" for f in EXPORT_FORMATS}
 SESSION_NOTE = """\
 # {date} {slug}
@@ -101,7 +101,8 @@ class Model:
 
     @property
     def speckle(self) -> dict:
-        """[speckle] project/model ids written by /checkpoint setup."""
+        """[speckle] account (email) and project_id; Speckle models are named
+        <model> / <model>/<variant> and resolved by name."""
         return dict(self.config.get("speckle", {}))
 
     # --- params ---------------------------------------------------------------

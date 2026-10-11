@@ -4,7 +4,7 @@
 - [x] Phase 0: context (AGENTS.md, CLAUDE.md shim, `.context/` guides)
 - [x] Phase 1: structure + witch frame migrated to `models/wispy-witch-frame`, refs → `refs/`
 - [x] Phase 2: parametric. `kit.gn`/`params`/`control`, three patterns, `assets/patterns.blend`, `blend variants`. Variants changed from one-scene-per-variant to: live `params.grid()` (object copies in Work/Variants) and headless `render_studio --params` per variant. That's simpler and needs no persistent scenes.
-- [ ] Phase 3: Speckle (connector spike first)
+- [x] Phase 3: Speckle. The connector was built from GitHub main and installed in 5.2. `kit.speckle` wraps publish_operation/load_operation with an explicit account (haitheredavid@gmail.com), and `/checkpoint` exists. The project is `blender-sessions` and models are named `<m>[/<variant>]`. **Pending:** first real publish (needs user OK; project is PUBLIC).
 - [ ] Phase 4: expansions
 - [ ] Phase 5: witch frame review; delete this doc
 

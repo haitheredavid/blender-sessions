@@ -10,7 +10,7 @@ scale_length = 1.0            # 0.001 + length_unit = "MILLIMETERS" for mm-scale
 length_unit = "METERS"
 
 [export]                      # `blend export`
-formats = ["glb"]             # any of glb, fbx, obj
+formats = ["glb"]             # any of glb, fbx, obj, stl, 3mf (3mf needs an exporter add-on)
 # split = false               # one file per Model object instead of one combined file
 
 [render]                      # `blend render` studio still -> render.png
@@ -25,9 +25,9 @@ formats = ["glb"]             # any of glb, fbx, obj
 # include = ["Ref"]           # also render these collections' meshes (e.g. proxies)
 # zoom = 1.0                  # > 1 crops in on target ([x, y, z] in model coordinates)
 
-[speckle]                     # filled by /checkpoint setup; see .context/speckle-guide.md
-# project_id = ""
-# models = { base = "" }        # Speckle model id per variant
+[speckle]                     # /checkpoint publishes here; see .context/speckle-guide.md
+account = "haitheredavid@gmail.com"   # chosen by email, never the connector's default
+project_id = "de2b7457ae"     # app.speckle.systems project "blender-sessions"
 
 [turntable]                   # `blend turntable` -> out/<session>-turntable.mp4 + .gif
 frames = 120

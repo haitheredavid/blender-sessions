@@ -17,9 +17,9 @@ split = true                 # one file per Model object instead of one combined
 # framing = "fit"             # fit: fill the frame; wide: show the floor around it
 # scene = "Scene"             # scene to render (default: the saved one)
 
-[speckle]                     # filled by /checkpoint setup; see .context/speckle-guide.md
-# project_id = ""
-# models = { base = "" }        # Speckle model id per variant
+[speckle]                     # /checkpoint publishes here; see .context/speckle-guide.md
+account = "haitheredavid@gmail.com"   # chosen by email, never the connector's default
+project_id = "de2b7457ae"     # app.speckle.systems project "blender-sessions"
 
 [turntable]                   # `blend turntable` -> out/<model>-turntable.mp4 + .gif
 frames = 120
