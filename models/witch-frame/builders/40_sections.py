@@ -24,7 +24,9 @@ from patterns import section_piece
 BED = 256.0
 TENON_LEN = 32.0  # across the seam, half in each piece
 TENON_W = 6.0  # max thickness across the rail (fitted down to the strip)
-TENON_MIN = 3.0  # thinner than this and the seam needs a different joint (E strip: 7.8 mm)
+TENON_MIN = (
+    3.0  # thinner than this and the seam needs a different joint (E strip: 7.8 mm)
+)
 TENON_CLEAR = 0.15  # mortise clearance per side (PLA, glued)
 TENON_END = 0.5  # extra mortise depth at each blind end
 TENON_CHAMFER = 0.4  # 45 deg on every tenon edge
@@ -76,14 +78,23 @@ def clear_of(pt, segs) -> bool:
             crossings += 1
         dx, dz = bx - ax, bz - az
         ll = dx * dx + dz * dz
-        t = 0.0 if ll == 0 else max(0.0, min(1.0, ((px - ax) * dx + (pz - az) * dz) / ll))
+        t = (
+            0.0
+            if ll == 0
+            else max(0.0, min(1.0, ((px - ax) * dx + (pz - az) * dz) / ll))
+        )
         if math.hypot(ax + t * dx - px, az + t * dz - pz) < WALL:
             return False
     return crossings % 2 == 1
 
 
 def mortise_ok(sections, s0, s1, z0, z1) -> bool:
-    g0, g1, h0, h1 = s0 - TENON_CLEAR, s1 + TENON_CLEAR, z0 - TENON_CLEAR, z1 + TENON_CLEAR
+    g0, g1, h0, h1 = (
+        s0 - TENON_CLEAR,
+        s1 + TENON_CLEAR,
+        z0 - TENON_CLEAR,
+        z1 + TENON_CLEAR,
+    )
     n = 8
     ring = [(g0 + (g1 - g0) * i / n, h) for i in range(n + 1) for h in (h0, h1)]
     ring += [(g, h0 + (h1 - h0) * i / n) for i in range(1, n) for g in (g0, g1)]
@@ -94,7 +105,9 @@ def fit(seam_axis: int, side: int) -> tuple[float, float, float, float]:
     """Largest tenon section (s0, s1, z0, z1) clear of the profile along its length:
     centred on the back strip, as wide as fits (<= TENON_W), then as tall as fits."""
     half = TENON_LEN / 2 + TENON_END + TENON_CLEAR
-    sections = [section(seam_axis, o, side) for o in (-half, -half / 2, 0, half / 2, half)]
+    sections = [
+        section(seam_axis, o, side) for o in (-half, -half / 2, 0, half / 2, half)
+    ]
     z0 = WALL + TENON_CLEAR + STEP / 2  # floor clear of the back face
     back = [pt[0] for segs in sections for sg in segs for pt in sg if pt[1] < 0.01]
     lo, hi = min(back), max(back)  # widest the back strip gets; walls trim it below
@@ -103,12 +116,16 @@ def fit(seam_axis: int, side: int) -> tuple[float, float, float, float]:
     while s < hi:
         w = TENON_MIN
         if mortise_ok(sections, s, s + w, z0, z0 + TENON_MIN):
-            while w + STEP <= TENON_W and mortise_ok(sections, s, s + w + STEP, z0, z0 + TENON_MIN):
+            while w + STEP <= TENON_W and mortise_ok(
+                sections, s, s + w + STEP, z0, z0 + TENON_MIN
+            ):
                 w += STEP
             if best is None or w > best[1] - best[0] + 1e-6:
                 best = (s, s + w)
         s += STEP
-    assert best, f"seam {seam_axis}/{side}: no {TENON_MIN} mm tenon with {WALL} mm walls"
+    assert best, (
+        f"seam {seam_axis}/{side}: no {TENON_MIN} mm tenon with {WALL} mm walls"
+    )
     s0, s1 = best
     h = TENON_MIN
     while mortise_ok(sections, s0, s1, z0, z0 + h + STEP):
@@ -133,17 +150,21 @@ tenons = []
 for name, seam_axis, side in (("N", 0, 1), ("S", 0, -1), ("E", 1, 1), ("W", 1, -1)):
     s0, s1, z0, z1 = fit(seam_axis, side)
     across = (s0 + s1) / 2 * side
-    c = Vector((0, across, (z0 + z1) / 2)) if seam_axis == 0 else Vector((across, 0, (z0 + z1) / 2))
-
-    def oriented(length, width, height):
-        return (
-            Vector((length, width, height)) if seam_axis == 0 else Vector((width, length, height))
-        )
+    c = (
+        Vector((0, across, (z0 + z1) / 2))
+        if seam_axis == 0
+        else Vector((across, 0, (z0 + z1) / 2))
+    )
 
     w, h = s1 - s0, z1 - z0
-    bar(cut_bm, c, oriented(TENON_LEN + 2 * TENON_END, w + 2 * TENON_CLEAR, h + 2 * TENON_CLEAR))
+    # bar sizes as (along the tenon, across the rail, z); the tenon runs along the seam axis
+    lw = (0, 1) if seam_axis == 0 else (1, 0)
+    mortise, tenon_size = Vector((0, 0, h + 2 * TENON_CLEAR)), Vector((0, 0, h))
+    mortise[lw[0]], mortise[lw[1]] = TENON_LEN + 2 * TENON_END, w + 2 * TENON_CLEAR
+    tenon_size[lw[0]], tenon_size[lw[1]] = TENON_LEN, w
+    bar(cut_bm, c, mortise)
     tb = bmesh.new()
-    bar(tb, c, oriented(TENON_LEN, w, h), TENON_CHAMFER)
+    bar(tb, c, tenon_size, TENON_CHAMFER)
     tenon = mesh.from_bmesh(f"Tenon_{name}", tb, parts)
     tenon.color = (0.9, 0.55, 0.2, 1)
     tenons.append((name, w, h, z0))

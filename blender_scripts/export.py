@@ -33,6 +33,12 @@ formats = [f.strip() for f in opts.formats.split(",") if f.strip()]
 objects = model_objects(
     types=("MESH", "CURVE", "EMPTY", "ARMATURE"), collection=opts.collection
 )
+# The STL exporter skips render-hidden objects, and Print is hide_render (its parts would
+# render over Model). The file is never saved, so make every exported object renderable.
+for o in objects:
+    o.hide_render = False
+    for c in o.users_collection:
+        c.hide_render = False
 
 
 def select_only(objs) -> None:

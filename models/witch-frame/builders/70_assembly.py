@@ -103,7 +103,12 @@ for name in ("Piece_TR", "Piece_TL", "Piece_BL", "Piece_BR"):
 
 # Each tenon is glued into one piece first (its rider), slid in along its length from
 # the seam side, then rides with that piece while the frame closes
-for name, rider, axis in (("N", "TL", 0), ("S", "BL", 0), ("E", "TR", 1), ("W", "TL", 1)):
+for name, rider, axis in (
+    ("N", "TL", 0),
+    ("S", "BL", 0),
+    ("E", "TR", 1),
+    ("W", "TL", 1),
+):
     tenon = copy(f"Tenon_{name}")
     home = tenon.location.copy()
     off = spread[rider]
