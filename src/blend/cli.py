@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
 
-from blend import blender, gallery, grid
+from blend import blender, gallery, grid, printpack
 from blend import model as models
 from blend.config import ROOT, get_settings
 from blend.steplog import StepLog
@@ -627,6 +627,40 @@ def variants(
         cells.append((name, out))
     sheet = grid.compose(cells, s.out / "variants.png", columns)
     console.print(f"[green]wrote[/green] {sheet.relative_to(ROOT)}")
+
+
+@app.command("print-pack")
+def print_pack(ref: ModelArg) -> None:
+    """Bake [print] collection parts into models/<m>/print/ for a printing agent:
+    parts.blend (mm, on the bed), stl/, manifest.json, README.md."""
+    s = _model(ref)
+    _need_blend(s)
+    cfg = s.print_options()
+    out = s.path / "print"
+    args = ["--outdir", str(out), "--collection", cfg["collection"]]
+    args += ["--bed", str(cfg["bed"])]
+    res = _run("print_pack.py", blend=s.blend, args=args)
+    m = printpack.manifest(s.name, res, cfg, ROOT)
+    printpack.write(out, m)
+    table = Table("part", "size (mm)", "cm³", "watertight", "fits bed")
+    bad = False
+    for p in m["parts"]:
+        ok = p["manifold"] and p["fits_bed"]
+        bad |= not ok
+        table.add_row(
+            p["name"],
+            " x ".join(f"{v:g}" for v in p["size"]),
+            f"{p['volume_cm3']:g}",
+            "yes" if p["manifold"] else "[red]NO[/red]",
+            "yes" if p["fits_bed"] else "[red]NO[/red]",
+        )
+    console.print(table)
+    console.print(
+        f"{len(m['parts'])} parts, {m['total_volume_cm3']} cm³, "
+        f"{len(m['plates_suggested'])} suggested plates -> {out.relative_to(ROOT)}/"
+    )
+    if bad:
+        raise typer.Exit(1)
 
 
 @app.command("patterns-lib")

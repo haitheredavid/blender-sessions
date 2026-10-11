@@ -16,3 +16,4 @@ Reusable Blender techniques distilled from sessions. Read the relevant ones befo
 | [sketch-to-curve](sketch-to-curve.md) | Grease pencil sketch → simplified Bezier Control curve feeding GN patterns |
 | [dimensions-and-annotation](dimensions-and-annotation.md) | Live GN dimension lines on Control anchors in Notes; annotated `views` |
 | [animation](animation.md) | `kit.anim` param sweeps and exploded views, rendered with `blend animate` |
+| [print-handoff](print-handoff.md) | `blend print-pack`: baked mm parts.blend + STLs + manifest for the printing agent (bambi) |

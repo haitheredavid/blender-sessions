@@ -25,6 +25,15 @@ formats = ["glb"]             # any of glb, fbx, obj, stl, 3mf (3mf needs an exp
 # include = ["Ref"]           # also render these collections' meshes (e.g. proxies)
 # zoom = 1.0                  # > 1 crops in on target ([x, y, z] in model coordinates)
 
+[print]                       # `blend print-pack` -> print/ handoff for a printing agent
+collection = "Print"          # what gets baked (Model if you don't split parts)
+bed = 256                     # mm, square (Bambu Lab P1S)
+# printer = "Bambu Lab P1S"
+# material = "PLA"
+# orientation = "as modelled: lowest face on the bed"
+# hardware = []
+# assembly = []
+
 [speckle]                     # /checkpoint publishes here; see .context/speckle-guide.md
 account = "haitheredavid@gmail.com"   # chosen by email, never the connector's default
 project_id = "de2b7457ae"     # app.speckle.systems project "blender-sessions"

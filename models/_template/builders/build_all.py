@@ -31,6 +31,7 @@ from kit import params
 res = params.apply("base")  # params.toml [base] -> GN inputs (the source of truth)
 if res["unused"]:
     print(f"build_all: params with no matching GN input: {res['unused']}")
+scene.fit_viewport()  # unit-aware clip range (mm files clip at 1 m otherwise)
 scene.purge()
 scene.save()
 print("build_all ok")

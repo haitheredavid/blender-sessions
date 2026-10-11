@@ -146,3 +146,9 @@ def test_views_defaults_and_validation(models_dir):
     m.toml.write_text(m.toml.read_text() + '\n[[views]]\nname = "tip"\n')
     with pytest.raises(ValueError, match="twice"):
         m.views()
+
+
+def test_print_options_defaults(models_dir):
+    m = models.create("frame", base=models_dir)
+    opts = m.print_options()
+    assert opts["collection"] == "Print" and opts["bed"] == 256

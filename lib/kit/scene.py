@@ -77,5 +77,19 @@ def purge() -> None:
                 data.remove(block)
 
 
+def fit_viewport(near_m: float = 0.0001, far_m: float = 10.0) -> None:
+    """Set every 3D view's clip range in real distance (default 0.1 mm to 10 m), scaled
+    by the file's unit scale. Blender's defaults are in Blender units (0.01-1000 BU), so
+    in an mm file they're 0.01 mm-1 m: the far side of a model clips away when zooming
+    out. Runs in build_all and works headless (screens are saved with the file)."""
+    per_bu = bpy.context.scene.unit_settings.scale_length or 1.0  # metres per BU
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+            for space in area.spaces:
+                if space.type == "VIEW_3D":
+                    space.clip_start = near_m / per_bu
+                    space.clip_end = far_m / per_bu
+
+
 def save() -> None:
     bpy.ops.wm.save_mainfile()

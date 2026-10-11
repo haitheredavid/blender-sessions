@@ -221,6 +221,14 @@ class Model:
         """[export] collection: what `blend export` writes (Model, or e.g. Print)."""
         return str(self.config.get("export", {}).get("collection", "Model"))
 
+    def print_options(self) -> dict:
+        """[print]: handoff settings for `blend print-pack` (collection, bed, material,
+        printer, orientation, hardware, assembly notes)."""
+        cfg = dict(self.config.get("print", {}))
+        cfg.setdefault("collection", "Print")
+        cfg.setdefault("bed", 256)
+        return cfg
+
     def turntable_options(self) -> dict:
         cfg = self.config.get("turntable", {})
         return {"frames": int(cfg.get("frames", 120)), "fps": int(cfg.get("fps", 30))}

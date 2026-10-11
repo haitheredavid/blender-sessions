@@ -25,6 +25,7 @@ scene.clear(scene.work())  # cutters/helpers are rebuilt by the builders too
 for step in sorted(HERE.glob("[0-9][0-9]_*.py")):
     exec(step.read_text(), {"__name__": step.stem, "__file__": str(step)})  # noqa: S102
     print(f"build_all: {step.name}")
+scene.fit_viewport()  # unit-aware clip range (mm files clip at 1 m otherwise)
 scene.purge()
 scene.save()
 print("build_all ok")

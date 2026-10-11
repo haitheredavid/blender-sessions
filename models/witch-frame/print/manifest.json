@@ -1,0 +1,240 @@
+{
+  "model": "witch-frame",
+  "created": "2026-10-10T20:42:58-04:00",
+  "units": "mm",
+  "blend": "models/witch-frame/print/parts.blend",
+  "stl_dir": "models/witch-frame/print/stl",
+  "printer": "Bambu Lab P1S",
+  "bed_mm": 256.0,
+  "material": "PLA (matte)",
+  "orientation": "as modelled: back face down on the bed; keys and clips flat",
+  "hardware": [
+    "8x M3x8 countersunk screws (turn clips), self-tapping into the 2.6 mm pilots"
+  ],
+  "assembly": [
+    "Dry-fit the 4 corner pieces on a flat surface, face down.",
+    "Glue the mid-side seam faces (CA or PLA-safe epoxy), then press a butterfly key into each back recess with glue: Key_N top, Key_S bottom, Key_E right, Key_W left.",
+    "Drop in glazing (2 mm), art on its 3 mm backboard, then screw the 8 turn clips over the backboard."
+  ],
+  "parts": [
+    {
+      "name": "Piece_TR",
+      "size": [
+        139.7,
+        177.8,
+        40.0
+      ],
+      "volume_cm3": 86.88,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Piece_TR.stl"
+    },
+    {
+      "name": "Piece_TL",
+      "size": [
+        139.7,
+        177.8,
+        40.0
+      ],
+      "volume_cm3": 87.61,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Piece_TL.stl"
+    },
+    {
+      "name": "Piece_BL",
+      "size": [
+        139.7,
+        177.8,
+        40.0
+      ],
+      "volume_cm3": 93.08,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Piece_BL.stl"
+    },
+    {
+      "name": "Piece_BR",
+      "size": [
+        139.7,
+        177.8,
+        40.0
+      ],
+      "volume_cm3": 90.47,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Piece_BR.stl"
+    },
+    {
+      "name": "Key_N",
+      "size": [
+        32.0,
+        6.0,
+        4.8
+      ],
+      "volume_cm3": 0.73,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Key_N.stl"
+    },
+    {
+      "name": "Key_S",
+      "size": [
+        32.0,
+        6.0,
+        4.8
+      ],
+      "volume_cm3": 0.73,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Key_S.stl"
+    },
+    {
+      "name": "Key_W",
+      "size": [
+        5.85,
+        32.0,
+        4.8
+      ],
+      "volume_cm3": 0.71,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Key_W.stl"
+    },
+    {
+      "name": "Key_E",
+      "size": [
+        5.54,
+        32.0,
+        4.8
+      ],
+      "volume_cm3": 0.67,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Key_E.stl"
+    },
+    {
+      "name": "Clip_01",
+      "size": [
+        9.0,
+        16.5,
+        3.0
+      ],
+      "volume_cm3": 0.35,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Clip_01.stl"
+    },
+    {
+      "name": "Clip_02",
+      "size": [
+        16.5,
+        9.0,
+        3.0
+      ],
+      "volume_cm3": 0.35,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Clip_02.stl"
+    },
+    {
+      "name": "Clip_03",
+      "size": [
+        9.0,
+        16.5,
+        3.0
+      ],
+      "volume_cm3": 0.35,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Clip_03.stl"
+    },
+    {
+      "name": "Clip_04",
+      "size": [
+        16.5,
+        9.0,
+        3.0
+      ],
+      "volume_cm3": 0.35,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Clip_04.stl"
+    },
+    {
+      "name": "Clip_05",
+      "size": [
+        9.0,
+        16.5,
+        3.0
+      ],
+      "volume_cm3": 0.35,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Clip_05.stl"
+    },
+    {
+      "name": "Clip_06",
+      "size": [
+        16.5,
+        9.0,
+        3.0
+      ],
+      "volume_cm3": 0.35,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Clip_06.stl"
+    },
+    {
+      "name": "Clip_07",
+      "size": [
+        9.0,
+        16.5,
+        3.0
+      ],
+      "volume_cm3": 0.35,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Clip_07.stl"
+    },
+    {
+      "name": "Clip_08",
+      "size": [
+        16.5,
+        9.0,
+        3.0
+      ],
+      "volume_cm3": 0.35,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Clip_08.stl"
+    }
+  ],
+  "plates_suggested": [
+    [
+      "Piece_TR",
+      "Key_N",
+      "Key_S",
+      "Key_W",
+      "Key_E",
+      "Clip_01",
+      "Clip_02",
+      "Clip_03",
+      "Clip_04",
+      "Clip_05",
+      "Clip_06",
+      "Clip_07",
+      "Clip_08"
+    ],
+    [
+      "Piece_TL"
+    ],
+    [
+      "Piece_BL"
+    ],
+    [
+      "Piece_BR"
+    ]
+  ],
+  "total_volume_cm3": 363.7
+}

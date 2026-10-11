@@ -89,6 +89,10 @@ views model *flags:
 variants model *flags:
     {{blend}} variants "$@"
 
+# bake the Print parts into models/<m>/print/ for the printing agent (bambi)
+print-pack model:
+    {{blend}} print-pack {{model}}
+
 # build lib/patterns into assets/patterns.blend (GN groups as assets)
 patterns-lib:
     {{blend}} patterns-lib
