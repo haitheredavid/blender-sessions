@@ -1,0 +1,33 @@
+name = "witch-frame"
+created = "2026-10-11"
+intent = "3D-printable shadow-box frame for a 9x12in witch illustration: concave bat-wing sides with flared corner tips, a face sloping from a thin outer edge into a deep sightwell, and a rabbet with turn clips for a 10x13in backboard."
+
+[paths]                       # a print pack: the files below belong to the modelling repo
+kind = "pack"
+blend = "parts.blend"
+exports = "stl"
+out = "out"                   # bambi's: sliced files (gitignore it upstream)
+
+[source]                      # what `bambi init` read; `bambi status` compares the live spec
+repo = "blender-sessions"
+model = "witch-frame"
+pack = "print"
+spec_created = "2026-10-11T14:02:09-04:00"
+spec_hash = "293b5d88d50e1bee"
+
+[slice]
+machine = "p1s_0.4"           # profiles/machine/<name>.json
+process = "0.16mm_optimal"
+filament = "insignia_petg"
+plate = "Textured PEI Plate"  # or Cool Plate, Engineering Plate, High Temp Plate, Supertack Plate
+orient = false                # packs arrive in print orientation; Bambu's auto-orient fights it
+arrange = true
+
+[slice.overrides]             # flat 3.7 mm glazing lip (z 9) + clip pockets (z 4) sag unsupported (2026-10-11 coupon)
+enable_support = 1
+support_type = "normal(auto)"
+support_on_build_plate_only = 1
+support_top_z_distance = 0.2
+
+[print]
+ams_slot = 3                 # AMS tray (0-15), or -1 for external spool

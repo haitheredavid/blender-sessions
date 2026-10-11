@@ -1,0 +1,33 @@
+{
+  "schema": "print-results/1",
+  "model": "witch-frame",
+  "pack": "print",
+  "runs": [
+    {
+      "id": "sli-20261011-01",
+      "kind": "slice",
+      "at": "2026-10-11T14:04:39-04:00",
+      "file": "out/witch-frame.gcode.3mf",
+      "machine": "p1s_0.4",
+      "process": "0.16mm_optimal",
+      "filaments": [
+        "insignia_petg"
+      ],
+      "plate": "Textured PEI Plate",
+      "overrides": {
+        "enable_support": 1,
+        "support_type": "normal(auto)",
+        "support_on_build_plate_only": 1,
+        "support_top_z_distance": 0.2
+      },
+      "seconds": 23979,
+      "grams": 196.2,
+      "grams_per_filament": [
+        196.2
+      ],
+      "filament_changes": 0,
+      "spec_hash": "293b5d88d50e1bee"
+    }
+  ],
+  "recommendations": []
+}
