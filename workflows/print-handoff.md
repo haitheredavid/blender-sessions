@@ -12,7 +12,9 @@ Turn a finished model into a self-contained print pack that a printing agent (ba
    - `stl/<part>.stl`: per-part STLs in mm.
    - `manifest.json` and `README.md`: units, bed, material, part sizes, volumes, watertight flags, conservative suggested plates, hardware and assembly.
 3. The command exits non-zero if any part isn't watertight or doesn't fit the bed.
-4. **On the bambi side:**
+4. **Lay parts flat:** `[print] flat = ["Tenon_*"]` (fnmatch globs) rotates the matching parts so their largest planar face (total area per normal) is on the bed. Use it for loose tenons, keys and pins that are modelled in place.
+5. **Extra packs:** use `blend print-pack <m> --collection Coupon` for test prints and spares. It writes to `print/coupon/`. A `[print.Coupon]` table replaces orientation, flat, hardware and assembly, and keeps the printer, bed and material.
+6. **On the bambi side:**
    - create the session (`bambi new <m>`);
    - replace its `model.blend` with `print/parts.blend` (or import the STLs);
    - set `[slice] arrange = true`, then `bambi build`.
@@ -24,4 +26,5 @@ Turn a finished model into a self-contained print pack that a printing agent (ba
 - **Plate suggestions** pack bounding rectangles, so L-shaped pieces that could nest still get a plate each. Treat them as an upper bound.
 
 ## Models
+- witch-frame (2026-10-11): the tenons are laid flat via `flat`, plus a separate clearance-coupon pack (9 parts, 1 plate).
 - witch-frame (2026-10-10): 4 corner pieces, 4 butterfly keys and 8 turn clips, 363.7 cm³, 4 suggested plates.
