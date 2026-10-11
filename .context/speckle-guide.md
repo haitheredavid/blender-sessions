@@ -41,6 +41,9 @@ Models are resolved by name (`kit.speckle.ensure_model`), so no ids need storing
 
 ## What a checkpoint publishes
 
+> Known bug: versions currently arrive without mesh geometry. See `active/20261010-speckle-no-geometry.md`.
+
+
 - The Model collection, with modifiers applied, so the published geometry is the evaluated GN result.
 - Versions have no message field (a server API gap), so context rides on each object as custom properties: `blend_model`, `blend_variant`, `blend_step`, `blend_session`, `blend_git`. They're stamped only for the publish and removed afterwards.
 - The returned version id goes on the latest step: `blend step <m> --speckle-version <id>`.
