@@ -1,19 +1,20 @@
 {
   "model": "witch-frame",
-  "created": "2026-10-10T20:42:58-04:00",
+  "created": "2026-10-11T00:35:43-04:00",
   "units": "mm",
   "blend": "models/witch-frame/print/parts.blend",
   "stl_dir": "models/witch-frame/print/stl",
   "printer": "Bambu Lab P1S",
   "bed_mm": 256.0,
   "material": "PLA (matte)",
-  "orientation": "as modelled: back face down on the bed; keys and clips flat",
+  "orientation": "as modelled: back face down on the bed; clips flat; tenons can lie on a long face",
   "hardware": [
     "8x M3x8 countersunk screws (turn clips), self-tapping into the 2.6 mm pilots"
   ],
   "assembly": [
     "Dry-fit the 4 corner pieces on a flat surface, face down.",
-    "Glue the mid-side seam faces (CA or PLA-safe epoxy), then press a butterfly key into each back recess with glue: Key_N top, Key_S bottom, Key_E right, Key_W left.",
+    "Glue a loose tenon into the top pieces first: Tenon_N into TL/TR's top seam, Tenon_E into Piece_TR, Tenon_W into Piece_TL; Tenon_S into the bottom seam (PLA-safe epoxy, slow CA, or wood glue fills the 0.15 mm gaps).",
+    "Glue the seam faces and close each half along x (top pair over Tenon_N, bottom pair over Tenon_S), then close the halves along y over Tenon_E/W. Clamp flat, face down.",
     "Drop in glazing (2 mm), art on its 3 mm backboard, then screw the 8 turn clips over the backboard."
   ],
   "parts": [
@@ -24,7 +25,7 @@
         177.8,
         40.0
       ],
-      "volume_cm3": 86.88,
+      "volume_cm3": 86.14,
       "manifold": true,
       "fits_bed": true,
       "stl": "stl/Piece_TR.stl"
@@ -36,7 +37,7 @@
         177.8,
         40.0
       ],
-      "volume_cm3": 87.61,
+      "volume_cm3": 86.81,
       "manifold": true,
       "fits_bed": true,
       "stl": "stl/Piece_TL.stl"
@@ -48,7 +49,7 @@
         177.8,
         40.0
       ],
-      "volume_cm3": 93.08,
+      "volume_cm3": 92.01,
       "manifold": true,
       "fits_bed": true,
       "stl": "stl/Piece_BL.stl"
@@ -60,58 +61,22 @@
         177.8,
         40.0
       ],
-      "volume_cm3": 90.47,
+      "volume_cm3": 89.45,
       "manifold": true,
       "fits_bed": true,
       "stl": "stl/Piece_BR.stl"
     },
     {
-      "name": "Key_N",
+      "name": "Tenon_S",
       "size": [
         32.0,
         6.0,
-        4.8
+        8.4
       ],
-      "volume_cm3": 0.73,
+      "volume_cm3": 1.6,
       "manifold": true,
       "fits_bed": true,
-      "stl": "stl/Key_N.stl"
-    },
-    {
-      "name": "Key_S",
-      "size": [
-        32.0,
-        6.0,
-        4.8
-      ],
-      "volume_cm3": 0.73,
-      "manifold": true,
-      "fits_bed": true,
-      "stl": "stl/Key_S.stl"
-    },
-    {
-      "name": "Key_W",
-      "size": [
-        5.85,
-        32.0,
-        4.8
-      ],
-      "volume_cm3": 0.71,
-      "manifold": true,
-      "fits_bed": true,
-      "stl": "stl/Key_W.stl"
-    },
-    {
-      "name": "Key_E",
-      "size": [
-        5.54,
-        32.0,
-        4.8
-      ],
-      "volume_cm3": 0.67,
-      "manifold": true,
-      "fits_bed": true,
-      "stl": "stl/Key_E.stl"
+      "stl": "stl/Tenon_S.stl"
     },
     {
       "name": "Clip_01",
@@ -208,15 +173,51 @@
       "manifold": true,
       "fits_bed": true,
       "stl": "stl/Clip_08.stl"
+    },
+    {
+      "name": "Tenon_N",
+      "size": [
+        32.0,
+        4.2,
+        8.2
+      ],
+      "volume_cm3": 1.09,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Tenon_N.stl"
+    },
+    {
+      "name": "Tenon_W",
+      "size": [
+        3.8,
+        32.0,
+        8.2
+      ],
+      "volume_cm3": 0.98,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Tenon_W.stl"
+    },
+    {
+      "name": "Tenon_E",
+      "size": [
+        3.4,
+        32.0,
+        8.3
+      ],
+      "volume_cm3": 0.89,
+      "manifold": true,
+      "fits_bed": true,
+      "stl": "stl/Tenon_E.stl"
     }
   ],
   "plates_suggested": [
     [
       "Piece_TR",
-      "Key_N",
-      "Key_S",
-      "Key_W",
-      "Key_E",
+      "Tenon_S",
+      "Tenon_N",
+      "Tenon_W",
+      "Tenon_E",
       "Clip_01",
       "Clip_02",
       "Clip_03",
@@ -236,5 +237,5 @@
       "Piece_BR"
     ]
   ],
-  "total_volume_cm3": 363.7
+  "total_volume_cm3": 361.8
 }

@@ -1,12 +1,20 @@
-# Print sectioning + joinery: four corner pieces split at the mid-sides, joined by
-# butterfly keys glued into recesses across each seam on the back face.
+# Print sectioning + joinery: four corner pieces split at the mid-sides, joined by a
+# glued loose tenon inside each seam.
 #
 # Pieces (Print collection) are live GN_SectionPiece cuts of Frame: edit the frame (its
-# Control outline or modifier inputs) and the pieces follow. Each key runs along its rail,
-# straddling the seam; its width is fitted to the back-face strip there (rabbet edge to
-# the bowed outline, 8-11 mm), keeping >= MARGIN of wall on both sides (asserted by ray).
-# Keys print flat; each recess is KEY_CLEAR bigger per side, and keys sit KEY_PROUD below
-# flush so they never stop the frame lying flat on the wall.
+# Control outline or modifier inputs) and the pieces follow. The seam faces are the full
+# frame profile, so the joint hides inside them instead of in the narrow back strip
+# (8-11 mm at the mid-sides, too thin for a recess with real walls).
+#
+# Each tenon is a chamfered bar running across its seam, TENON_LEN/2 into each piece.
+# Its section is fitted to the frame profile at the seam, sampled over the tenon's whole
+# length: >= WALL of plastic all round the mortise (back face, rabbet, outer edge, cove),
+# width capped at TENON_W. One box per seam (Cut_Tenons) cuts both mortises: the tenon
+# + TENON_CLEAR per side + TENON_END at each blind end (glue room, nozzle-rounded
+# corners). Chamfers on every tenon edge ride over elephant's foot and lead it in.
+# Pieces print back face down, so the mortise roof is a short bridge (the tenon width).
+import math
+
 import bmesh
 import bpy
 from kit import mesh, scene
@@ -14,21 +22,20 @@ from mathutils import Vector
 from patterns import section_piece
 
 BED = 256.0
-KEY_LEN = 32.0  # along the rail, half each side of the seam
-KEY_WING = (
-    6.0  # max width across the rail at the key's ends (narrowed to fit the strip)
-)
-KEY_WAIST = 0.58  # waist / wing
-KEY_DEPTH = 5.0  # recess depth into the back face
-KEY_CLEAR = 0.15  # recess clearance per side (PLA, glued)
-KEY_PROUD = 0.2  # key thickness = depth - this
-MARGIN = 1.0  # min wall beside a recess
+TENON_LEN = 32.0  # across the seam, half in each piece
+TENON_W = 6.0  # max thickness across the rail (fitted down to the strip)
+TENON_MIN = 3.0  # thinner than this and the seam needs a different joint (E strip: 7.8 mm)
+TENON_CLEAR = 0.15  # mortise clearance per side (PLA, glued)
+TENON_END = 0.5  # extra mortise depth at each blind end
+TENON_CHAMFER = 0.4  # 45 deg on every tenon edge
+WALL = 2.0  # min plastic around a mortise (5 lines at 0.4 mm)
+STEP = 0.1  # fitting resolution
 
 frame = bpy.data.objects["Frame"]
 parts = scene.parts()
 for o in list(
     parts.objects
-):  # rebuild Print: drop our pieces/keys, unlink shared parts
+):  # rebuild Print: drop our pieces/tenons, unlink shared parts
     if len(o.users_collection) == 1:
         bpy.data.objects.remove(o, do_unlink=True)
     else:
@@ -36,73 +43,113 @@ for o in list(
 
 dg = bpy.context.evaluated_depsgraph_get()
 ev = frame.evaluated_get(dg)
-back = [frame.matrix_world @ v.co for v in ev.data.vertices]
-back = [p for p in back if p.z < 0.5]
 dims = ev.dimensions
+src = bmesh.new()
+src.from_mesh(ev.data)
+src.transform(frame.matrix_world)
 
 
-def strip(axis: int, sign: int) -> tuple[float, float]:
-    """Back-face strip across the rail where seam axis=0 meets side `sign`: (inner,
-    outer) distance from centre over the key's length (rabbet edge to nearest outline)."""
-    along = 1 - axis  # the rail runs along this axis; the seam is at along == 0
-    near = [p for p in back if abs(p[along]) <= KEY_LEN / 2 + 2 and p[axis] * sign > 0]
-    edge = sorted(abs(p[axis]) for p in near)
-    inner = edge[0]  # rabbet rectangle
-    outer = min(d for d in edge if d > inner + 1.0)  # outline ring (nearest point)
-    return inner, outer
+def section(seam_axis: int, off: float, side: int) -> list:
+    """Frame profile where the plane (seam_axis coord = off) crosses the rail on `side`:
+    2D segments in (distance from centre across the rail, z)."""
+    bm = src.copy()
+    no = Vector((1, 0, 0)) if seam_axis == 0 else Vector((0, 1, 0))
+    geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+    cut = bmesh.ops.bisect_plane(bm, geom=geom, plane_co=no * off, plane_no=no)
+    a = 1 - seam_axis  # across-the-rail axis
+    out = []
+    for e in cut["geom_cut"]:
+        if isinstance(e, bmesh.types.BMEdge):
+            p, q = (v.co for v in e.verts)
+            if p[a] * side > 0 and q[a] * side > 0:
+                out.append(((abs(p[a]), p.z), (abs(q[a]), q.z)))
+    bm.free()
+    return out
 
 
-def butterfly(bm, centre, axis, wing, grow=0.0, z0=0.0, z1=1.0):
-    """Bow-tie prism straddling the seam: length along the rail (the non-`axis`
-    direction), width across it (along `axis`)."""
-    half_l, half_w, half_n = (
-        KEY_LEN / 2 + grow,
-        wing / 2 + grow,
-        wing * KEY_WAIST / 2 + grow,
-    )
-    outline2d = [(-half_l, -half_w), (0, -half_n), (half_l, -half_w),
-                 (half_l, half_w), (0, half_n), (-half_l, half_w)]  # fmt: skip
-    ring = []
-    for u, v in outline2d:  # u along the rail, v across it
-        x, y = (v, u) if axis == 0 else (u, v)
-        ring.append(Vector((centre.x + x, centre.y + y)))
-    bot = [bm.verts.new((p.x, p.y, z0)) for p in ring]
-    top = [bm.verts.new((p.x, p.y, z1)) for p in ring]
-    bm.faces.new(list(reversed(bot)))
-    bm.faces.new(top)
-    for i in range(len(ring)):
-        j = (i + 1) % len(ring)
-        bm.faces.new((bot[i], bot[j], top[j], top[i]))
-    return ring
+def clear_of(pt, segs) -> bool:
+    """pt inside the profile (even-odd) and >= WALL from every edge of it."""
+    px, pz = pt
+    crossings = 0
+    for (ax, az), (bx, bz) in segs:
+        if (az > pz) != (bz > pz) and px < ax + (pz - az) * (bx - ax) / (bz - az):
+            crossings += 1
+        dx, dz = bx - ax, bz - az
+        ll = dx * dx + dz * dz
+        t = 0.0 if ll == 0 else max(0.0, min(1.0, ((px - ax) * dx + (pz - az) * dz) / ll))
+        if math.hypot(ax + t * dx - px, az + t * dz - pz) < WALL:
+            return False
+    return crossings % 2 == 1
 
 
-def backed(x: float, y: float) -> bool:
-    """True if the frame's back face (z ~ 0) is solid at (x, y)."""
-    ok, loc, *_ = frame.ray_cast(Vector((x, y, -5)), Vector((0, 0, 1)), depsgraph=dg)
-    return ok and loc.z < 0.5
+def mortise_ok(sections, s0, s1, z0, z1) -> bool:
+    g0, g1, h0, h1 = s0 - TENON_CLEAR, s1 + TENON_CLEAR, z0 - TENON_CLEAR, z1 + TENON_CLEAR
+    n = 8
+    ring = [(g0 + (g1 - g0) * i / n, h) for i in range(n + 1) for h in (h0, h1)]
+    ring += [(g, h0 + (h1 - h0) * i / n) for i in range(1, n) for g in (g0, g1)]
+    return all(clear_of(p, segs) for segs in sections for p in ring)
+
+
+def fit(seam_axis: int, side: int) -> tuple[float, float, float, float]:
+    """Largest tenon section (s0, s1, z0, z1) clear of the profile along its length:
+    centred on the back strip, as wide as fits (<= TENON_W), then as tall as fits."""
+    half = TENON_LEN / 2 + TENON_END + TENON_CLEAR
+    sections = [section(seam_axis, o, side) for o in (-half, -half / 2, 0, half / 2, half)]
+    z0 = WALL + TENON_CLEAR + STEP / 2  # floor clear of the back face
+    back = [pt[0] for segs in sections for sg in segs for pt in sg if pt[1] < 0.01]
+    lo, hi = min(back), max(back)  # widest the back strip gets; walls trim it below
+    best = None
+    s = lo
+    while s < hi:
+        w = TENON_MIN
+        if mortise_ok(sections, s, s + w, z0, z0 + TENON_MIN):
+            while w + STEP <= TENON_W and mortise_ok(sections, s, s + w + STEP, z0, z0 + TENON_MIN):
+                w += STEP
+            if best is None or w > best[1] - best[0] + 1e-6:
+                best = (s, s + w)
+        s += STEP
+    assert best, f"seam {seam_axis}/{side}: no {TENON_MIN} mm tenon with {WALL} mm walls"
+    s0, s1 = best
+    h = TENON_MIN
+    while mortise_ok(sections, s0, s1, z0, z0 + h + STEP):
+        h += STEP
+    return s0, s1, z0, z0 + h
+
+
+def bar(bm, centre: Vector, size: Vector, chamfer: float = 0.0) -> None:
+    """Axis box into bm, optionally with every edge chamfered."""
+    new = bmesh.ops.create_cube(bm, size=1.0)["verts"]
+    for v in new:
+        v.co = centre + Vector(c * d for c, d in zip(v.co, size))
+    if chamfer:
+        edges = list({e for v in new for e in v.link_edges})
+        bmesh.ops.bevel(bm, geom=edges, offset=chamfer, segments=1, affect="EDGES")
 
 
 cut_bm = bmesh.new()
-keys = []
-# (name, axis across the rail, side): N/S keys cross the x=0 seam on the top/bottom
-# rails; E/W keys cross the y=0 seam on the right/left rails
-for name, axis, sign in (("N", 1, 1), ("S", 1, -1), ("E", 0, 1), ("W", 0, -1)):
-    inner, outer = strip(axis, sign)
-    wing = min(KEY_WING, outer - inner - 2 * (KEY_CLEAR + MARGIN))
-    assert wing >= 3.5, f"key {name}: strip {outer - inner:.1f} mm too narrow for a key"
-    c = (inner + outer) / 2 * sign
-    centre = Vector((0, c)) if axis == 1 else Vector((c, 0))
-    ring = butterfly(cut_bm, centre, axis, wing, KEY_CLEAR, -1.0, KEY_DEPTH)
-    for p in ring:  # every recess corner, pushed out by MARGIN, must still be backed
-        q = p + (p - centre).normalized() * MARGIN
-        assert backed(q.x, q.y), f"key {name}: recess breaks out near {q[:]}"
-    kb = bmesh.new()
-    butterfly(kb, centre, axis, wing, 0.0, 0.0, KEY_DEPTH - KEY_PROUD)
-    key = mesh.from_bmesh(f"Key_{name}", kb, parts)
-    key.color = (0.9, 0.55, 0.2, 1)
-    keys.append((name, wing, outer - inner))
+tenons = []
+# (name, seam axis, side): N/S tenons cross the x=0 seam in the top/bottom rails;
+# E/W cross the y=0 seam in the right/left rails
+for name, seam_axis, side in (("N", 0, 1), ("S", 0, -1), ("E", 1, 1), ("W", 1, -1)):
+    s0, s1, z0, z1 = fit(seam_axis, side)
+    across = (s0 + s1) / 2 * side
+    c = Vector((0, across, (z0 + z1) / 2)) if seam_axis == 0 else Vector((across, 0, (z0 + z1) / 2))
 
-cutter = mesh.from_bmesh("Cut_Keys", cut_bm, scene.work())
+    def oriented(length, width, height):
+        return (
+            Vector((length, width, height)) if seam_axis == 0 else Vector((width, length, height))
+        )
+
+    w, h = s1 - s0, z1 - z0
+    bar(cut_bm, c, oriented(TENON_LEN + 2 * TENON_END, w + 2 * TENON_CLEAR, h + 2 * TENON_CLEAR))
+    tb = bmesh.new()
+    bar(tb, c, oriented(TENON_LEN, w, h), TENON_CHAMFER)
+    tenon = mesh.from_bmesh(f"Tenon_{name}", tb, parts)
+    tenon.color = (0.9, 0.55, 0.2, 1)
+    tenons.append((name, w, h, z0))
+src.free()
+
+cutter = mesh.from_bmesh("Cut_Tenons", cut_bm, scene.work())
 cutter.display_type = "WIRE"
 cutter.hide_render = True
 
@@ -129,7 +176,8 @@ for o in parts.objects:
             f"{o.name} {w:.1f} x {h:.1f} does not fit the {BED} bed"
         )
         print(f"sections: {o.name} {w:.1f} x {h:.1f} x {d:.1f} mm")
-for name, wing, avail in keys:
+for name, w, h, z0 in tenons:
     print(
-        f"sections: Key_{name} {KEY_LEN:.0f} x {wing:.1f} mm in a {avail:.1f} mm strip"
+        f"sections: Tenon_{name} {TENON_LEN:.0f} x {w:.1f} x {h:.1f} mm at z {z0:.2f}, "
+        f">= {WALL} mm walls"
     )

@@ -1,8 +1,8 @@
 name = "witch-frame"
 created = "2026-10-10"
 intent = "3D-printable shadow-box frame for a 9x12in witch illustration: concave bat-wing sides with flared corner tips, a face sloping from a thin outer edge into a deep sightwell, and a rabbet with turn clips for a 10x13in backboard."                   # what is this model, and what is it for?
-status = "active"             # active | done (`blend model done` sets it)
-workflows = ["mcp-modeling-loop", "ring-sweep-frame", "variant-grid-exploration", "print-fit-and-sectioning", "photo-to-texture", "render-views-and-sections"]                # workflows/<name>.md used or written for this model
+status = "done"               # active | done (`blend model done` sets it)
+workflows = ["mcp-modeling-loop", "ring-sweep-frame", "variant-grid-exploration", "print-fit-and-sectioning", "photo-to-texture", "render-views-and-sections", "animation", "print-handoff"]                # workflows/<name>.md used or written for this model
 tags = ["3d-print", "frame", "stylized", "parametric", "halloween"]                     # e.g. ["hard-surface", "prop", "low-poly"]
 
 [units]                       # applied by `blend model new`; 1 Blender unit = 1 m by default
@@ -12,7 +12,7 @@ length_unit = "MILLIMETERS"
 [export]                      # `blend export`
 formats = ["stl", "obj", "glb"]  # stl for the slicer; obj/glb for viewing
 split = true                  # one file per part
-collection = "Print"          # the 4 corner pieces, 4 butterfly keys, 8 clips
+collection = "Print"          # the 4 corner pieces, 4 loose tenons, 8 clips
 
 [render]                      # `blend render` studio still -> render.png
 # framing = "fit"             # fit: fill the frame; wide: show the floor around it
@@ -23,13 +23,14 @@ collection = "Print"
 printer = "Bambu Lab P1S"
 bed = 256                     # mm, square
 material = "PLA (matte)"
-orientation = "as modelled: back face down on the bed; keys and clips flat"
+orientation = "as modelled: back face down on the bed; clips flat; tenons can lie on a long face"
 hardware = [
   "8x M3x8 countersunk screws (turn clips), self-tapping into the 2.6 mm pilots",
 ]
 assembly = [
   "Dry-fit the 4 corner pieces on a flat surface, face down.",
-  "Glue the mid-side seam faces (CA or PLA-safe epoxy), then press a butterfly key into each back recess with glue: Key_N top, Key_S bottom, Key_E right, Key_W left.",
+  "Glue a loose tenon into the top pieces first: Tenon_N into TL/TR's top seam, Tenon_E into Piece_TR, Tenon_W into Piece_TL; Tenon_S into the bottom seam (PLA-safe epoxy, slow CA, or wood glue fills the 0.15 mm gaps).",
+  "Glue the seam faces and close each half along x (top pair over Tenon_N, bottom pair over Tenon_S), then close the halves along y over Tenon_E/W. Clamp flat, face down.",
   "Drop in glazing (2 mm), art on its 3 mm backboard, then screw the 8 turn clips over the backboard.",
 ]
 
