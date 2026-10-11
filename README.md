@@ -1,6 +1,6 @@
-# blender-sessions
+# bless
 
-![blender-sessions: vibe shitty models, a confused geometric cube in bauhaus poster style](docs/hero.svg)
+![bless: vibe shitty models, a hatched, badly triangulated cube in bauhaus poster style](docs/hero.svg)
 
 Spin the models in 3D: **[haitheredavid.github.io/bless](https://haitheredavid.github.io/bless/)**
 
