@@ -326,17 +326,20 @@ def check(
     strict: Annotated[
         bool, typer.Option(help="Also fail on non-manifold / unapplied transforms.")
     ] = False,
+    collection: Annotated[
+        str, typer.Option(help="Collection to check (e.g. Print).")
+    ] = "Model",
 ) -> None:
     """Mesh health of the Model collection: topology, normals, transforms, size."""
     s = _model(ref)
     _need_blend(s)
-    res = _run("check_mesh.py", blend=s.blend)
+    res = _run("check_mesh.py", blend=s.blend, args=["--collection", collection])
     if not res["objects"]:
-        console.print("[yellow]no visible mesh objects in Model[/yellow]")
+        console.print(f"[yellow]no visible mesh objects in {collection}[/yellow]")
         raise typer.Exit(1)
     table = Table(
         "object", "size", "faces", "tris", "ngons", "issues", "transforms",
-        title=f"{s.name} (unit scale {res['unit_scale']:g})",
+        title=f"{s.name} {collection} (unit scale {res['unit_scale']:g})",
     )  # fmt: skip
     failed = False
     for o in res["objects"]:
@@ -375,8 +378,14 @@ def export(
     split: Annotated[
         bool | None, typer.Option(help="One file per Model object.")
     ] = None,
+    collection: Annotated[
+        str | None,
+        typer.Option(
+            help="Collection to export (default: [export] collection, Model)."
+        ),
+    ] = None,
 ) -> None:
-    """Export the Model collection to exports/."""
+    """Export the Model collection (or [export] collection, e.g. Print) to exports/."""
     s = _model(ref)
     _need_blend(s)
     try:
@@ -390,6 +399,7 @@ def export(
     if split is None:
         split = bool(s.config.get("export", {}).get("split", False))
     args = ["--outdir", str(s.exports), "--name", s.name, "--formats", ",".join(fmts)]
+    args += ["--collection", collection or s.export_collection()]
     res = _run("export.py", blend=s.blend, args=args + (["--split"] if split else []))
     for path in res["written"]:
         console.print(f"[green]wrote[/green] {Path(path).relative_to(s.path)}")

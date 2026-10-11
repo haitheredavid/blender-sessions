@@ -34,6 +34,7 @@ Build a model as a stack of Geometry Nodes pattern modifiers on a host object, d
 | `profile_sweep` | GN_ProfileSweep | Path, Profile, Scale, Fill Caps, Smooth |
 | `outline_extrude` | GN_OutlineExtrude | Outline, Height, Taper, Fillet |
 | `pocket_cut` | GN_PocketCut | Pocket Width/Height/Depth/Bottom/Corner Radius/Center |
+| `section_piece` | GN_SectionPiece | Source, Box Min, Box Max, Cutter |
 | `frame_loft` | GN_FrameLoft (+ GN_LoftBand) | Outline, Sag, Tip Shape, Edge Height, Depth, Face Power, Sight/Rabbet Width/Height, Rabbet Depth, Samples, Face Rings, Material |
 
 ## Lofts (GN_FrameLoft)

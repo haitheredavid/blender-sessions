@@ -1,7 +1,7 @@
 """Export the Model collection to GLB / FBX / OBJ / STL / 3MF (modifiers applied).
 
 Usage: blender -b model.blend -P export.py -- --outdir exports --name NAME
-       [--formats glb,fbx,obj,stl,3mf] [--split] --result r.json
+       [--formats glb,fbx,obj,stl,3mf] [--split] [--collection Print] --result r.json
 
 Default: one file per format with every Model object in it. --split writes one file per
 object (NAME is ignored; files are named after the objects). STL is written in Blender
@@ -23,13 +23,16 @@ parser.add_argument("--outdir", required=True)
 parser.add_argument("--name", required=True)
 parser.add_argument("--formats", default="glb")
 parser.add_argument("--split", action="store_true")
+parser.add_argument("--collection", default="")  # default Model; Print for parts
 opts = parse(parser)
 
 outdir = Path(opts.outdir)
 outdir.mkdir(parents=True, exist_ok=True)
 formats = [f.strip() for f in opts.formats.split(",") if f.strip()]
 # Export the meshes plus anything parented/rigged with them (empties, armatures, lights).
-objects = model_objects(types=("MESH", "CURVE", "EMPTY", "ARMATURE"))
+objects = model_objects(
+    types=("MESH", "CURVE", "EMPTY", "ARMATURE"), collection=opts.collection
+)
 
 
 def select_only(objs) -> None:

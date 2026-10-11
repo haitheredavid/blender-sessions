@@ -217,6 +217,10 @@ class Model:
             )
         return list(formats)
 
+    def export_collection(self) -> str:
+        """[export] collection: what `blend export` writes (Model, or e.g. Print)."""
+        return str(self.config.get("export", {}).get("collection", "Model"))
+
     def turntable_options(self) -> dict:
         cfg = self.config.get("turntable", {})
         return {"frames": int(cfg.get("frames", 120)), "fps": int(cfg.get("fps", 30))}

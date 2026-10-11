@@ -26,15 +26,18 @@ def write_result(path: str, data: dict) -> None:
     Path(path).write_text(json.dumps(data, indent=2))
 
 
-def model_objects(scene: bpy.types.Scene | None = None, types=("MESH",)) -> list:
-    """Visible objects of `types` in the Model collection (and its children).
+def model_objects(
+    scene: bpy.types.Scene | None = None, types=("MESH",), collection: str = ""
+) -> list:
+    """Visible objects of `types` in the Model collection (or `collection`, e.g. Print)
+    and its children.
 
-    Falls back to every visible object of those types when the scene has no Model
+    Falls back to every visible object of those types when the scene has no such
     collection, so older or hand-made files still work.
     """
     scene = scene or bpy.context.scene
     layer = scene.view_layers[0]
-    coll = bpy.data.collections.get(MODEL)
+    coll = bpy.data.collections.get(collection or MODEL)
     pool = coll.all_objects if coll and coll.all_objects else scene.objects
     return [o for o in pool if o.type in types and o.visible_get(view_layer=layer)]
 

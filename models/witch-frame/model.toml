@@ -10,8 +10,9 @@ scale_length = 0.001            # 0.001 + length_unit = "MILLIMETERS" for mm-sca
 length_unit = "MILLIMETERS"
 
 [export]                      # `blend export`
-formats = ["obj", "glb"]             # any of glb, fbx, obj
-split = true                 # one file per Model object instead of one combined file
+formats = ["stl", "obj", "glb"]  # stl for the slicer; obj/glb for viewing
+split = true                  # one file per part
+collection = "Print"          # the 4 corner pieces, 4 butterfly keys, 8 clips
 
 [render]                      # `blend render` studio still -> render.png
 # framing = "fit"             # fit: fill the frame; wide: show the floor around it

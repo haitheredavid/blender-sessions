@@ -37,10 +37,26 @@ assert loc.z - PILOT_TOP >= 3.0  # skin above the pilot
 ```
 Reference: `models/witch-frame/builders/frame_geo.py`, `20_clips.py`, `40_sections.py`.
 
+## Live sections + butterfly keys (GN)
+1. Keep the assembled part in Model (renders, variants). Put printable parts in a **Print** collection (`kit.scene.parts()`). Set `[export] collection = "Print"` and run `blend check <m> --collection Print --strict`.
+2. Each piece is an empty mesh with `patterns.section_piece`:
+   - Source = the assembled object;
+   - Box Min/Max = its quadrant;
+   - Cutter = a joinery-recess mesh in Work.
+
+   Pieces follow every edit of the source.
+3. **Butterfly keys across a seam:**
+   - Measure the back-face strip at the seam from the evaluated mesh: the ring verts at z~0 nearest the seam.
+   - Fit the key width to `strip - 2 × (clearance + margin)`.
+   - Ray-cast up from below at each recess corner, pushed out by the margin, to assert the wall.
+   - Key thickness = recess depth - 0.2, so it sits below flush.
+4. Clips and other shared parts can be linked into Print as well as Model (one object, two collections). When rebuilding Print, unlink shared objects; only delete Print-only ones.
+
 ## Gotchas
 - **OBJ export is Y-up** (mm values are correct). Some slicers lay it on its side, so rotate it before slicing.
 - **Changing the stack moves the clip and pocket positions.** Update any hard-coded view, camera and section targets too, or derive them from the constants.
 - **Stack thicknesses are assumptions** (2 mm acrylic, 3 mm board). Record them in notes and confirm with the user.
 
 ## Models
+- witch-frame (2026-10-10, joinery): live GN_SectionPiece corner pieces + per-seam-fitted butterfly keys; Print collection export.
 - witch-frame (2026-10-10): 11×14" frame for 9×12" art; 9 mm rabbet (glazing, art on board, clip zone), 8 turn clips, 4 corner sections (139.7 × 177.8) for a 256 mm bed.

@@ -1,6 +1,6 @@
-"""Mesh health checks on the Model collection, written as JSON.
+"""Mesh health checks on the Model collection (or --collection), written as JSON.
 
-Usage: blender -b model.blend -P check_mesh.py -- --result r.json
+Usage: blender -b model.blend -P check_mesh.py -- [--collection Print] --result r.json
 
 Per object: verts/faces/tris, n-gons, non-manifold edges, loose verts/edges, degenerate
 faces, inconsistent normals, unapplied scale/rotation, world-space size.
@@ -16,12 +16,14 @@ import bmesh
 import bpy
 from _common import model_objects, parse, write_result
 
-opts = parse(argparse.ArgumentParser())
+parser = argparse.ArgumentParser()
+parser.add_argument("--collection", default="")
+opts = parse(parser)
 
 depsgraph = bpy.context.evaluated_depsgraph_get()
 report = {"unit_scale": bpy.context.scene.unit_settings.scale_length, "objects": []}
 
-for obj in model_objects():
+for obj in model_objects(collection=opts.collection):
     evaluated = obj.evaluated_get(depsgraph)
     bm = bmesh.new()
     bm.from_mesh(evaluated.to_mesh())
