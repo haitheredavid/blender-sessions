@@ -166,4 +166,7 @@ for i, (piv, inward, along) in enumerate(pivots(), 1):
     for p in clip.data.polygons:
         p.use_smooth = False
     materials.assign(clip, pla)
+    # for animation/assembly: screw axis and the swing that opens it (tip -> corner)
+    clip["pivot"] = (piv.x, piv.y, POCKET_Z - CLIP_T)
+    clip["swing_deg"] = 90.0 if inward.to_3d().cross(along.to_3d()).z > 0 else -90.0
 print("clips ok")

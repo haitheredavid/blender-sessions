@@ -3,7 +3,8 @@
 Usage: blender -b model.blend -P render_studio.py -- --studio assets/studio.blend --out render.png
        [--framing fit|wide] [--scene NAME] [--size 800] [--azimuth DEG --elevation DEG]
        [--frames N --fps 30] [--upright] [--include COLL ...] [--zoom 1.0]
-       [--target X Y Z] [--params JSON] [--animate START END] --result r.json
+       [--target X Y Z] [--params JSON] [--animate START END] [--collection NAME]
+       [--ortho] --result r.json
 
 Appends the `blend_studio` scene from studio.blend (build_studio.py), centres the model on
 the floor (XY centred, lowest point at z=0), scales the studio to the model and fits the
@@ -14,6 +15,9 @@ wall. --include adds visible meshes from other collections (e.g. Ref proxies). -
 crops in on --target (a point in the model's original coordinates; default its centre).
 --animate START END renders the scene's own animation (keyed GN inputs, exploded views)
 over that range as PNG frames to --out, framed at END.
+--collection renders that collection instead of Model (e.g. an Assembly scene's parts).
+--ortho switches to an orthographic camera at the same angle (azimuth 45 / elevation
+35.264 = isometric).
 --params sets GN modifier inputs on the model first ({"Depth": 60}, as in params.toml;
 `blend variants` uses it). Objects without materials render a neutral grey. Never saves
 the .blend.
@@ -48,12 +52,16 @@ parser.add_argument("--zoom", type=float, default=1.0)
 parser.add_argument("--target", type=float, nargs=3)
 parser.add_argument("--params", default="")
 parser.add_argument("--animate", type=int, nargs=2, metavar=("START", "END"))
+parser.add_argument("--collection", default="")  # objects to render (default Model)
+parser.add_argument("--ortho", action="store_true")  # orthographic camera (isometric)
 opts = parse(parser)
 
 STUDIO_SCENE = "blend_studio"
 
 src = bpy.data.scenes[opts.scene] if opts.scene else bpy.context.scene
-objects = model_objects(src)
+if opts.animate:  # collect parts as they are at the end (some are keyed hidden early)
+    src.frame_set(opts.animate[1])
+objects = model_objects(src, collection=opts.collection)
 if not objects:
     raise SystemExit("no visible mesh objects in the Model collection")
 for name in opts.include:
@@ -150,6 +158,15 @@ pts = world_points(objects)
 size = pts.max(0) - pts.min(0)
 radius = max(float(np.linalg.norm(size)) / 2, 1e-4)
 
+if opts.animate:
+    # frame every pose the animation passes through (exploded starts are the widest)
+    a, b = opts.animate
+    samples = []
+    for f in sorted({round(a + (b - a) * i / 8) for i in range(9)}):
+        sc.frame_set(f)
+        samples.append(world_points(objects))
+    sc.frame_set(b)
+    pts = np.concatenate(samples)
 if opts.frames > 0:
     # sample the frame across the whole spin so nothing leaves it mid-turn
     r_xy = float(np.max(np.linalg.norm(pts[:, :2], axis=1)))
@@ -215,6 +232,14 @@ for _ in range(8):
     cam_data.shift_y = (vs.min() + vs.max()) / 4
     extent = max(us.max() - us.min(), vs.max() - vs.min()) / 2
     dist *= float(extent) / fill
+if opts.ortho:  # same angle, parallel projection, scaled to fit
+    cam_data.type = "ORTHO"
+    view = np.array(cam.matrix_basis.inverted())
+    p = frame @ view[:3, :3].T + view[:3, 3]
+    us, vs = p[:, 0], p[:, 1]
+    cam_data.ortho_scale = float(max(np.ptp(us), np.ptp(vs))) / fill
+    cam_data.shift_x = float(us.min() + us.max()) / 2 / cam_data.ortho_scale
+    cam_data.shift_y = float(vs.min() + vs.max()) / 2 / cam_data.ortho_scale
 
 sc.render.resolution_x = sc.render.resolution_y = opts.size
 out = Path(opts.out).resolve()

@@ -532,6 +532,21 @@ def animate(
     view: Annotated[str | None, typer.Option(help="Use this [[views]] angle.")] = None,
     size: Annotated[int, typer.Option(help="Frame size in px.")] = 720,
     name: Annotated[str, typer.Option(help="Output name in out/.")] = "animation",
+    scene: Annotated[
+        str | None, typer.Option(help="Scene to animate (e.g. Assembly).")
+    ] = None,
+    collection: Annotated[
+        str | None, typer.Option(help="Collection to render (default Model).")
+    ] = None,
+    ortho: Annotated[bool, typer.Option(help="Orthographic camera.")] = False,
+    isometric: Annotated[
+        bool,
+        typer.Option(help="Ortho camera at the isometric angle (az 45, el 35.264)."),
+    ] = False,
+    azimuth: Annotated[float | None, typer.Option(help="Camera azimuth (deg).")] = None,
+    elevation: Annotated[
+        float | None, typer.Option(help="Camera elevation (deg).")
+    ] = None,
 ) -> None:
     """Render the scene's own animation (keyed params, exploded views) in the studio
     -> out/<name>.mp4 + .gif. Key it with kit.anim, save, then run this."""
@@ -539,7 +554,7 @@ def animate(
     _need_blend(s)
     _ffmpeg()
     if start is None or end is None:
-        rng = _run("scene_info.py", blend=s.blend)
+        rng = _run("scene_info.py", blend=s.blend, args=["--scene", scene or ""])
         start = rng["frame_start"] if start is None else start
         end = rng["frame_end"] if end is None else end
     if end <= start:
@@ -554,11 +569,20 @@ def animate(
         console.print(f"[red]no [[views]] named {view!r}[/red]")
         raise typer.Exit(1)
     v = shots.get(view) if view else None
-    args = _render_args(s, v["framing"] if v else None, None)
+    args = _render_args(s, v["framing"] if v else None, scene)
+    if isometric:
+        azimuth, elevation, ortho = 45.0 if azimuth is None else azimuth, 35.264, True
     if v:
-        args += ["--azimuth", str(v["azimuth"]), "--elevation", str(v["elevation"])]
+        azimuth = v["azimuth"] if azimuth is None else azimuth
+        elevation = v["elevation"] if elevation is None else elevation
         args += ["--upright"] if v["upright"] else []
         args += [a for c in v["include"] for a in ("--include", c)]
+    if azimuth is not None:
+        args += ["--azimuth", str(azimuth)]
+    if elevation is not None:
+        args += ["--elevation", str(elevation)]
+    args += ["--collection", collection] if collection else []
+    args += ["--ortho"] if ortho else []
     frames_dir = s.out / name
     shutil.rmtree(frames_dir, ignore_errors=True)
     args += ["--animate", str(start), str(end), "--fps", str(fps), "--size", str(size)]
