@@ -1,13 +1,14 @@
 """Bake a collection's parts into a print-ready handoff: parts.blend + one STL per part.
 
 Usage: blender -b model.blend -P print_pack.py -- --outdir models/<m>/print
-       [--collection Print] [--gap 5] [--bed 256] --result r.json
+       [--collection Print] [--gap 5] [--bed 256] [--flat 'Tenon_*' ...] --result r.json
 
 For a printing agent (e.g. bambi), which exports every visible mesh of a mm .blend:
 - every visible mesh in the collection is evaluated (modifiers, GN, booleans applied) into
   a plain mesh with its world transform baked in, keeping materials;
 - each part is dropped onto the bed (lowest point at z=0) in its modelled orientation,
-  and parts are laid out in non-overlapping rows (gap mm apart) so nothing collides;
+  unless its name matches a --flat pattern: then its largest flat face goes down;
+- parts are laid out in non-overlapping rows (gap mm apart) so nothing collides;
 - parts.blend contains only those parts, in mm (1 BU = 1 mm), saved as a new file;
 - each part is also written as <name>.stl in Blender units (mm).
 The source .blend is never saved. The result JSON lists each part's size, volume and
@@ -16,6 +17,8 @@ footprint, and flags any part larger than the bed.
 
 import argparse
 import sys
+from collections import defaultdict
+from fnmatch import fnmatch
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -30,6 +33,7 @@ parser.add_argument("--outdir", required=True)
 parser.add_argument("--collection", default="Print")
 parser.add_argument("--gap", type=float, default=5.0)
 parser.add_argument("--bed", type=float, default=256.0)
+parser.add_argument("--flat", action="append", default=[], help="part name glob")
 opts = parse(parser)
 
 scene = bpy.context.scene
@@ -40,12 +44,26 @@ sources = model_objects(collection=opts.collection)
 if not sources:
     raise SystemExit(f"no visible meshes in collection {opts.collection!r}")
 
+
+def lay_flat(me) -> None:
+    """Rotate me so its largest planar face (summed area per normal) faces the bed."""
+    area = defaultdict(float)
+    for poly in me.polygons:
+        area[tuple(round(c, 3) for c in poly.normal)] += poly.area
+    down = Vector(max(area, key=area.get)).normalized()
+    me.transform(down.rotation_difference(Vector((0, 0, -1))).to_matrix().to_4x4())
+
+
 baked = []
+flat = set()
 for src in sources:
     me = bpy.data.meshes.new_from_object(src.evaluated_get(dg), depsgraph=dg)
     me.transform(src.matrix_world)
     if mm != 1.0:  # normalise to 1 BU = 1 mm
         me.transform(Matrix.Scale(1.0 / mm, 4))
+    if any(fnmatch(src.name, pat) for pat in opts.flat):
+        lay_flat(me)
+        flat.add(src.name)
     me.name = src.name
     baked.append((src.name, me))
 
@@ -89,6 +107,7 @@ for name, me, lo, hi in items:
             "volume_cm3": round(volume / 1000.0, 2),
             "manifold": manifold,
             "fits_bed": max(w, d) <= opts.bed and h <= opts.bed,
+            "flat": name in flat,
         }
     )
     x += w + opts.gap

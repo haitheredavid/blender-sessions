@@ -152,3 +152,17 @@ def test_print_options_defaults(models_dir):
     m = models.create("frame", base=models_dir)
     opts = m.print_options()
     assert opts["collection"] == "Print" and opts["bed"] == 256
+
+
+def test_print_options_per_collection(models_dir):
+    m = models.create("frame", base=models_dir)
+    text = m.toml.read_text().replace(
+        "\nbed = 256", '\nbed = 220\nflat = ["Tenon_*"]\nassembly = ["glue"]'
+    )
+    m.toml.write_text(text + '\n[print.Coupon]\norientation = "back down"\n')
+    main = m.print_options()
+    assert main["flat"] == ["Tenon_*"] and "Coupon" not in main
+    coupon = m.print_options("Coupon")
+    assert coupon["collection"] == "Coupon" and coupon["bed"] == 220
+    assert coupon["orientation"] == "back down"
+    assert "flat" not in coupon and "assembly" not in coupon

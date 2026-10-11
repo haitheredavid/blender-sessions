@@ -221,10 +221,17 @@ class Model:
         """[export] collection: what `blend export` writes (Model, or e.g. Print)."""
         return str(self.config.get("export", {}).get("collection", "Model"))
 
-    def print_options(self) -> dict:
+    def print_options(self, collection: str = "") -> dict:
         """[print]: handoff settings for `blend print-pack` (collection, bed, material,
-        printer, orientation, hardware, assembly notes)."""
-        cfg = dict(self.config.get("print", {}))
+        printer, orientation, flat part globs, hardware, assembly notes). For another
+        collection, its [print.<collection>] table replaces the notes (orientation,
+        flat, hardware, assembly) and keeps the printer settings."""
+        base = self.config.get("print", {})
+        cfg = {k: v for k, v in base.items() if not isinstance(v, dict)}
+        if collection:
+            for key in ("orientation", "flat", "hardware", "assembly"):
+                cfg.pop(key, None)
+            cfg.update(base.get(collection, {}), collection=collection)
         cfg.setdefault("collection", "Print")
         cfg.setdefault("bed", 256)
         return cfg

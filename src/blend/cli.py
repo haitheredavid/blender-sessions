@@ -685,15 +685,28 @@ def variants(
 
 
 @app.command("print-pack")
-def print_pack(ref: ModelArg) -> None:
+def print_pack(
+    ref: ModelArg,
+    collection: Annotated[
+        str,
+        typer.Option(
+            help="Pack another collection (e.g. a test coupon) into print/<name>/, "
+            "with [print.<name>] overriding [print]."
+        ),
+    ] = "",
+) -> None:
     """Bake [print] collection parts into models/<m>/print/ for a printing agent:
     parts.blend (mm, on the bed), stl/, manifest.json, README.md."""
     s = _model(ref)
     _need_blend(s)
-    cfg = s.print_options()
+    cfg = s.print_options(collection)
     out = s.path / "print"
+    if collection:
+        out = out / collection.lower()
     args = ["--outdir", str(out), "--collection", cfg["collection"]]
     args += ["--bed", str(cfg["bed"])]
+    for pat in cfg.get("flat", []):
+        args += ["--flat", pat]
     res = _run("print_pack.py", blend=s.blend, args=args)
     m = printpack.manifest(s.name, res, cfg, ROOT)
     printpack.write(out, m)
