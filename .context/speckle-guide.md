@@ -44,6 +44,7 @@ Models are resolved by name (`kit.speckle.ensure_model`), so no ids need storing
 - The Model collection, with modifiers applied, so the published geometry is the evaluated GN result.
 - Versions have no message field (a server API gap), so context rides on each object as custom properties: `blend_model`, `blend_variant`, `blend_step`, `blend_session`, `blend_git`. They're stamped only for the publish and removed afterwards.
 - The returned version id goes on the latest step: `blend step <m> --speckle-version <id>`.
+- Ingestion is asynchronous: the version appears in `kit.speckle.versions()` and the web UI a few seconds after `publish` returns.
 - Checkpoints are explicit (the user asks, or `/wrap`). Never publish after every step.
 
 ## Driving the connector over MCP
