@@ -21,7 +21,7 @@ Size a 3D-printed enclosure or frame around real parts: a rabbet stack, turn-cli
    - Place clips near the corners, where the frame is widest.
    - Pilot holes: Ø2.6 for self-tapping M3 into PLA. Raycast the face to keep ≥ 3 mm of skin above each pilot.
 5. **Sectioning, pass 1:** mark seams as thin Work planes and assert each piece's footprint is ≤ the bed. Corner L-pieces split at the mid-sides give 4 pieces up to (W/2 × H/2).
-6. **Joinery (next pass):** alignment-pin holes plus glue, or a butterfly key recessed across each seam on the back. Prefer seams in thick sections; mid-sides of a bowed frame are the *thinnest*.
+6. **Joinery:** a glued loose tenon inside each seam (below). Measure the walls before choosing a joint that is recessed into a face: the back strip of a sloped frame is often too narrow. Prefer seams in thick sections; the mid-sides of a bowed frame are the *thinnest*.
 
 ## bpy
 ```python
@@ -35,7 +35,7 @@ rabbet_wh = [max(a, b) + 2 * 0.5 for a, b in zip(BACKBOARD[:2], GLAZING[:2])]
 ok, loc, *_ = frame.ray_cast(Vector((x, y, 500)), Vector((0, 0, -1)))
 assert loc.z - PILOT_TOP >= 3.0  # skin above the pilot
 ```
-Reference: `models/witch-frame/builders/frame_geo.py`, `20_clips.py`, `40_sections.py`.
+Reference: `models/witch-frame/builders/frame_geo.py`, `20_clips.py`, `40_sections.py` (tenon `fit()`), `70_assembly.py` (tenons slide in, pieces close along x then y).
 
 ## Live sections + butterfly keys (GN)
 1. Keep the assembled part in Model (renders, variants). Put printable parts in a **Print** collection (`kit.scene.parts()`). Set `[export] collection = "Print"` and run `blend check <m> --collection Print --strict`.
@@ -45,18 +45,23 @@ Reference: `models/witch-frame/builders/frame_geo.py`, `20_clips.py`, `40_sectio
    - Cutter = a joinery-recess mesh in Work.
 
    Pieces follow every edit of the source.
-3. **Butterfly keys across a seam:**
-   - Measure the back-face strip at the seam from the evaluated mesh: the ring verts at z~0 nearest the seam.
-   - Fit the key width to `strip - 2 × (clearance + margin)`.
-   - Ray-cast up from below at each recess corner, pushed out by the margin, to assert the wall.
-   - Key thickness = recess depth - 0.2, so it sits below flush.
+3. **Loose tenon inside each seam** (glued; hidden; uses the full seam profile):
+   - Slice the evaluated source with `bmesh.ops.bisect_plane` at 5 stations along the tenon (both ends + clearance, quarters, the seam). Keep the cut edges on the rail's side as 2D segments (distance across the rail, z).
+   - Fit the mortise (tenon + clearance) so every sampled point on it is inside the profile (even-odd) and >= WALL (2 mm = 5 lines at 0.4) from every segment. Width = as wide as fits, capped; then grow the height.
+   - Cut both mortises with one box per seam (tenon length + 2 × 0.5 mm end gap, section + 2 × 0.15). The tenon is the same bar with every edge chamfered 0.4 (beat the elephant's foot, lead in).
+   - Assert a minimum tenon thickness, so a frame edit that starves a seam fails loudly.
 4. Clips and other shared parts can be linked into Print as well as Model (one object, two collections). When rebuilding Print, unlink shared objects; only delete Print-only ones.
 
 ## Gotchas
+- **A recess in a narrow face leaves thin fins.** Butterfly keys in an 8 mm back strip left 1.07 mm walls beside a 9 mm-deep rabbet (0.7 at a mouth flare). Measure the walls, then move the joint into the seam faces (loose tenon).
+- **A cutter vertex on a section plane gives degenerate boolean faces.** A fillet whose middle vertex landed on x=0 (the seam) left zero-area slivers. Use odd arc segment counts, or offset the cutter off the plane.
+- **Clearance is a perpendicular offset.** Adding `grow` to a polygon's half-widths under-clears its angled edges. Offset each edge along its normal and intersect, and grow convex fillets by +d and shrink concave ones by -d.
+- **Builders and `blend check/export` read the active scene.** If the window was left on another scene (e.g. Assembly), the Print parts don't evaluate (0 verts) and check finds nothing. Switch `window.scene` to the main scene before building and saving.
 - **OBJ export is Y-up** (mm values are correct). Some slicers lay it on its side, so rotate it before slicing.
 - **Changing the stack moves the clip and pocket positions.** Update any hard-coded view, camera and section targets too, or derive them from the constants.
 - **Stack thicknesses are assumptions** (2 mm acrylic, 3 mm board). Record them in notes and confirm with the user.
 
 ## Models
+- witch-frame (2026-10-11, key-tolerances): butterfly keys -> loose tenons fitted to each seam profile with 2 mm walls (3.4-6.0 x 8.2-8.4 x 32 mm).
 - witch-frame (2026-10-10, joinery): live GN_SectionPiece corner pieces + per-seam-fitted butterfly keys; Print collection export.
 - witch-frame (2026-10-10): 11×14" frame for 9×12" art; 9 mm rabbet (glazing, art on board, clip zone), 8 turn clips, 4 corner sections (139.7 × 177.8) for a 256 mm bed.
