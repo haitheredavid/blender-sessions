@@ -65,6 +65,11 @@ bed = 256                     # mm, square (Bambu Lab P1S)
 # orientation = ""            # replaces orientation/flat/hardware/assembly/intent/feedback_*;
                               # [[print.Coupon.part]] etc. replace the inherited arrays
 
+# [site]                      # Pages viewer; `blend export <m> --web` publishes the model
+# parts = "Print"             # collection shown as "print parts" (default [print] collection; "" for none)
+# upright = true              # stand it up as hung (default: the hero view's upright)
+# speckle = false             # link the Speckle project (only once it's public)
+
 [speckle]                     # /checkpoint publishes here; see .context/speckle-guide.md
 account = "haitheredavid@gmail.com"   # chosen by email, never the connector's default
 project_id = "de2b7457ae"     # app.speckle.systems project "blender-sessions"

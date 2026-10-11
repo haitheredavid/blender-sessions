@@ -1,0 +1,5 @@
+node_modules/
+dist/
+# written by `blend site` from models/*/web and render.png
+public/models/
+public/models.json

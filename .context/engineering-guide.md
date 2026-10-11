@@ -9,6 +9,7 @@
 - `just open <m>` - open a model's `.blend` (MCP bridge auto-starts).
 - `just check|export|render|views|turntable <m>` - headless runs against the saved file.
 - `just wrap <m>` - check, export, render.
+- `just site-export <m>`, `just site-dev`, `just site-build` - the Pages gallery (see `workflows/web-demo.md`).
 
 ## Code areas
 
@@ -18,6 +19,7 @@
   - Each script takes `--result` and writes JSON there. `_common.py` holds the shared arg and collection helpers.
 - **`lib/kit/`, `lib/patterns/`**: bpy helpers imported by builders and by live MCP code once `lib/` is on `sys.path`. Keep functions small, named by what they build, and idempotent where possible.
 - **`lib/cmdline/`**: Blender side of `blend repl` (`src/blend/repl.py`, `src/blend/bridge.py`): command functions and the persistent-namespace runner, called through the blender-mcp socket. Host-side parsing is tested in `tests/test_repl.py`.
+- **`site/`**: the Pages gallery (Vite + React + TypeScript + React-Three-Fiber, pnpm). It reads `public/models.json` and the model files that `blend site` (`src/blend/site.py`) copies in; both are gitignored. `.github/workflows/pages.yml` builds and deploys it with base `/<repo name>/`.
 - **Builders** (`models/<m>/builders/`): model-specific; promote generic helpers into `lib/`.
 
 ## Python style

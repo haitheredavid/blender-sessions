@@ -21,7 +21,7 @@ Arguments: $ARGUMENTS. With no model, use the one worked on in this conversation
 ## 2. Outputs
 
 1. `just check <m>`. Fix issues, or record why they're acceptable.
-2. `just export <m>`, then `just render <m>`. Read `render.png`. If the model has `[[views]]`, run `just views <m>`.
+2. `just export <m>`, then `just render <m>`. Read `render.png`. If the model has `[[views]]`, run `just views <m>`. If the model is on the Pages gallery (`models/<m>/web/model.glb` exists), also run `just site-export <m>` (`workflows/web-demo.md`).
 3. `just turntable <m>` if `--turntable` is set or the user asks.
 4. **Printable models** (a `print/` pack exists): run `uv run blend print-results <m>` (and `--pack <x>` for each extra pack with a `results.json`). Walk the **pending** recommendations with the user, one at a time:
    - **apply**: edit `model.toml` or the builder, rebuild, and add the id to `[print] feedback_applied` (`[print.<Coll>]` for an extra pack);

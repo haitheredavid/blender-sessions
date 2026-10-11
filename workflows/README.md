@@ -17,3 +17,4 @@ Reusable Blender techniques distilled from sessions. Read the relevant ones befo
 | [dimensions-and-annotation](dimensions-and-annotation.md) | Live GN dimension lines on Control anchors in Notes; annotated `views` |
 | [animation](animation.md) | `kit.anim` param sweeps and exploded views, rendered with `blend animate` |
 | [print-handoff](print-handoff.md) | `blend print-pack`: baked mm parts.blend + STLs + manifest for the printing agent (bambi) |
+| [web-demo](web-demo.md) | `just site-export` + `blend site`: publish a model to the Pages gallery (R3F viewer, exploded print parts) |

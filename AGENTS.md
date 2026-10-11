@@ -21,12 +21,13 @@ Durable context lives in `.context/` (conventions in `.context/README.md`):
 | `src/blend/` | `blend` CLI (typer, host Python 3.13). |
 | `blender_scripts/` | Headless scripts run inside Blender; bpy only; write JSON to `--result`. |
 | `lib/kit/`, `lib/patterns/` | bpy helpers and GN pattern builders for builders and live MCP code. |
-| `models/<m>/` | `model.blend`, `model.toml`, `params.toml`, `builders/`, `log/`, `sessions/`, `exports/`, `print/` (handoff pack), `render.png`, `out/` (gitignored). |
+| `models/<m>/` | `model.blend`, `model.toml`, `params.toml`, `builders/`, `log/`, `sessions/`, `exports/`, `print/` (handoff pack), `web/` (Pages GLBs), `render.png`, `out/` (gitignored). |
 | `models/_template/` | Copied by `blend model new`. |
 | `workflows/` | Technique docs (`README.md` index, `_template.md`). |
 | `assets/` | `studio.blend` render studio; `patterns.blend` GN asset library. |
 | `refs/<m>/` | Third-party reference images (gitignored). |
 | `docs/gallery/` | README gallery tiles, rewritten on every render. |
+| `site/` | Pages gallery (Vite + R3F) over `models/*/web/*.glb`; see `workflows/web-demo.md`. |
 | `.claude/skills/` | `/model`, `/session`, `/checkpoint`, `/wrap`. |
 
 ## Lifecycle

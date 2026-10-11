@@ -1,0 +1,62 @@
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "src/blend/site.py"
+      - "models/*/web/**"
+      - "models/*/render.png"
+      - "models/*/model.toml"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Only the files the site serves; .blend/STL/OBJ would burn LFS bandwidth.
+      - name: Pull web LFS files
+        run: git lfs pull --include "models/*/web/*.glb,models/*/render.png"
+      - uses: astral-sh/setup-uv@v6
+      - name: Gather models
+        run: uv run --frozen blend site
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: site/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+      - name: Build
+        working-directory: site
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+        env:
+          BLESS_BASE: /${{ github.event.repository.name }}/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

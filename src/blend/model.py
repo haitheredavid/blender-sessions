@@ -2,7 +2,7 @@
 
 models/<slug>/ holds model.blend, model.toml (config), params.toml (GN params + variants),
 builders/, log/ (every iteration step, see blend.steplog), sessions/ (one note per sitting),
-exports/, render.png and out/ (gitignored scratch).
+exports/, web/ (GLBs for the Pages viewer), render.png and out/ (gitignored scratch).
 """
 
 import re
@@ -84,6 +84,10 @@ class Model:
     @property
     def exports(self) -> Path:
         return self.path / "exports"
+
+    @property
+    def web(self) -> Path:
+        return self.path / "web"
 
     @property
     def out(self) -> Path:
@@ -251,6 +255,21 @@ class Model:
         cfg.setdefault("collection", "Print")
         cfg.setdefault("bed", 256)
         return cfg
+
+    def site_options(self) -> dict:
+        """[site]: how the Pages viewer shows the model. `parts` is the collection
+        exported as web/parts.glb ("" for none; default the [print] collection when
+        set), `upright` stands it up as hung (default: the hero view's `upright`),
+        `speckle` links the Speckle project (only when it's public)."""
+        cfg = self.config.get("site", {})
+        views = self.config.get("views", [])
+        hero = next((v for v in views if v.get("name") == "hero"), {})
+        parts = cfg.get("parts", self.config.get("print", {}).get("collection", ""))
+        return {
+            "parts": str(parts),
+            "upright": bool(cfg.get("upright", hero.get("upright", False))),
+            "speckle": bool(cfg.get("speckle", False)),
+        }
 
     def turntable_options(self) -> dict:
         cfg = self.config.get("turntable", {})

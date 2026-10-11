@@ -23,3 +23,6 @@ models/*/print/**/check.json
 **/worktrees/
 # third-party reference images (not ours to publish)
 refs/
+
+# pages site (site/.gitignore has the rest)
+node_modules/

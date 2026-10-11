@@ -14,6 +14,7 @@ from rich.table import Table
 
 from blend import blender, bridge, gallery, grid, printpack, printresults
 from blend import model as models
+from blend import site as sites
 from blend.config import ROOT, get_settings
 from blend.steplog import StepLog
 
@@ -415,10 +416,20 @@ def export(
             help="Collection to export (default: [export] collection, Model)."
         ),
     ] = None,
+    web: Annotated[
+        bool,
+        typer.Option(
+            help="Write web/model.glb (Model) and web/parts.glb ([site] parts) for "
+            "the Pages viewer instead."
+        ),
+    ] = False,
 ) -> None:
     """Export the Model collection (or [export] collection, e.g. Print) to exports/."""
     s = _model(ref)
     _need_blend(s)
+    if web:
+        _export_web(s)
+        return
     try:
         fmts = formats.split(",") if formats else s.export_formats()
     except ValueError as e:
@@ -437,6 +448,37 @@ def export(
     if not res["written"]:
         console.print("[yellow]nothing in Model to export[/yellow]")
         raise typer.Exit(1)
+
+
+def _export_web(s: models.Model) -> None:
+    parts = s.site_options()["parts"]
+    for name, collection in (("model", "Model"), ("parts", parts)):
+        if not collection:
+            continue
+        args = ["--outdir", str(s.web), "--name", name, "--formats", "glb"]
+        res = _run("export.py", blend=s.blend, args=args + ["--collection", collection])
+        for path in res["written"]:
+            console.print(f"[green]wrote[/green] {Path(path).relative_to(s.path)}")
+        if not res["written"]:
+            if name == "model":
+                console.print("[yellow]nothing in Model to export[/yellow]")
+                raise typer.Exit(1)
+            (s.web / "parts.glb").unlink(missing_ok=True)
+            console.print(f"[dim]no {collection} collection: no parts.glb[/dim]")
+
+
+@app.command()
+def site(
+    public: Annotated[
+        Path, typer.Option(help="Where the site's static data goes.")
+    ] = ROOT / "site" / "public",
+) -> None:
+    """Gather models with a web export (`blend export <m> --web`) into the Pages
+    site: models.json plus each model's GLBs and render."""
+    written = sites.build(models.list_all(), public)
+    for path in written:
+        console.print(f"[dim]{path.relative_to(public)}[/dim]")
+    console.print(f"[green]{len(written) - 1} files, models.json[/green] -> {public}")
 
 
 @app.command()

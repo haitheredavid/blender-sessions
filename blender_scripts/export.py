@@ -33,6 +33,12 @@ formats = [f.strip() for f in opts.formats.split(",") if f.strip()]
 objects = model_objects(
     types=("MESH", "CURVE", "EMPTY", "ARMATURE"), collection=opts.collection
 )
+# A named collection that doesn't exist exports nothing (model_objects would fall back
+# to the whole scene, which is right for Model but wrong for e.g. --collection Print).
+if opts.collection not in ("", "Model") and not bpy.data.collections.get(
+    opts.collection
+):
+    objects = []
 # The STL exporter skips render-hidden objects, and Print is hide_render (its parts would
 # render over Model). The file is never saved, so make every exported object renderable.
 for o in objects:

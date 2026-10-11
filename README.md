@@ -2,6 +2,8 @@
 
 ![blender-sessions: vibe shitty models, a confused geometric cube in bauhaus poster style](docs/hero.svg)
 
+Spin the models in 3D: **[haitheredavid.github.io/bless](https://haitheredavid.github.io/bless/)**
+
 ## what
 
 I originally learned to model in rhino, but I never upgraded from rhino 7, and apparently they stopped supporting it on newer macOS with non-intel chips. So I moved over to Blender, because it works and it's free. But I really don't want to learn another modeling tool and all the stupid fucking buttons I'd need to dance around. In comes claudia and [blender-mcp](https://github.com/ahujasid/blender-mcp).

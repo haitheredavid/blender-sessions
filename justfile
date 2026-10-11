@@ -113,6 +113,24 @@ render-scene *flags:
 gallery:
     {{blend}} gallery
 
+# --- pages site (site/, served at haitheredavid.github.io/bless) -------------
+
+# web GLBs for the Pages viewer -> models/<m>/web/{model,parts}.glb
+site-export model:
+    {{blend}} export {{model}} --web
+
+# gather web exports into site/public, then serve the site locally
+site-dev:
+    {{blend}} site
+    pnpm -C site install
+    pnpm -C site dev
+
+# production build of the site -> site/dist
+site-build:
+    {{blend}} site
+    pnpm -C site install --frozen-lockfile
+    pnpm -C site build
+
 # check -> export -> render
 wrap model:
     {{blend}} check {{model}}

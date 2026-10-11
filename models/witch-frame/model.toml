@@ -2,7 +2,7 @@ name = "witch-frame"
 created = "2026-10-10"
 intent = "3D-printable shadow-box frame for a 9x12in witch illustration: concave bat-wing sides with flared corner tips, a face sloping from a thin outer edge into a deep sightwell, and a rabbet with turn clips for a 10x13in backboard."                   # what is this model, and what is it for?
 status = "done"               # active | done (`blend model done` sets it)
-workflows = ["mcp-modeling-loop", "ring-sweep-frame", "variant-grid-exploration", "print-fit-and-sectioning", "photo-to-texture", "render-views-and-sections", "animation", "print-handoff"]                # workflows/<name>.md used or written for this model
+workflows = ["mcp-modeling-loop", "ring-sweep-frame", "variant-grid-exploration", "print-fit-and-sectioning", "photo-to-texture", "render-views-and-sections", "animation", "print-handoff", "web-demo"]                # workflows/<name>.md used or written for this model
 tags = ["3d-print", "frame", "stylized", "parametric", "halloween"]                     # e.g. ["hard-surface", "prop", "low-poly"]
 
 [units]                       # applied by `blend model new`; 1 Blender unit = 1 m by default
