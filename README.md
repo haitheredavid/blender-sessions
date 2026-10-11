@@ -1,12 +1,25 @@
 # blender-sessions
 
-Modeling in Blender through [blender-mcp](https://github.com/ahujasid/blender-mcp), alongside an agent. Each model lives in `models/<name>/` and is iterated over many short sessions. It stays parametric (Geometry Nodes driven by `Control` curves you can reshape by hand), every step is logged, and checkpoints are versioned to [Speckle](https://speckle.systems). The techniques that work get written up in [`workflows/`](workflows/). Agent context lives in [`AGENTS.md`](AGENTS.md) and [`.context/`](.context/).
+![blender-sessions: vibe shitty models, a confused geometric cube in bauhaus poster style](docs/hero.svg)
 
-This is a sibling of [bambi](https://github.com/haitheredavid/bambi), with the 3D-printing pipeline swapped for a modeling one.
+## what
 
-## setup
+I used to model everything by hand in rhino, one click at a time. Now an agent drives a live Blender through [blender-mcp](https://github.com/ahujasid/blender-mcp) while I sit next to it, poke at things and tell it when it's being stupid. Sometimes it tells me the same thing.
 
-macOS. You'll need Blender, [uv](https://docs.astral.sh/uv/), [just](https://github.com/casey/just) and ffmpeg (for turntables):
+So, here's what this fucking thing does right now:
+
+- **Vibe modeling, but parametric.** Models are built with Geometry Nodes driven by `Control` curves. You can grab those and drag them around by hand without the whole thing exploding. Usually.
+- **Short sessions, long models.** Each model lives in `models/<name>/` and gets worked on over a bunch of short sittings. Every step is logged, so future me can figure out what the fuck past me was thinking.
+- **Checkpoints.** Versions get published to [Speckle](https://speckle.systems), so there's a history that isn't just `model_final_FINAL_v3.blend`.
+- **Lessons learned.** When a technique works, it gets written up in [`workflows/`](workflows/) so neither of us has to rediscover it next week.
+
+Agent context lives in [`AGENTS.md`](AGENTS.md) and [`.context/`](.context/). When something needs to exist in real life, its sibling [bambi](https://github.com/haitheredavid/bambi) takes over and prints it.
+
+## how
+
+### setup
+
+macOS again. You'll need Blender, [uv](https://docs.astral.sh/uv/), [just](https://github.com/casey/just) and ffmpeg (for turntables):
 
 ```sh
 brew install --cask blender
@@ -15,18 +28,22 @@ git lfs install
 just setup
 ```
 
-`just addon` installs or updates the MCP for Blender add-on (`uvx mcp-for-blender install-addon`); restart Blender after. The MCP server itself is wired up in `.mcp.json`.
+`just addon` installs or updates the MCP for Blender add-on (`uvx mcp-for-blender install-addon`). Restart Blender afterwards, because of course. The MCP server itself is wired up in `.mcp.json`.
 
-## working
+### the agentic spice
 
 In Claude Code:
 
-- `/model <idea>` plans a new model and creates `models/<slug>/`.
-- `/session <model> [goal]` is one short sitting. It loads the brief, params and recent steps, models live in Blender, and logs each step.
-- `/checkpoint [msg]` publishes a Speckle version of the current state.
-- `/wrap` promotes steps into builders, then checks, exports and renders. It also distills `workflows/`, checkpoints, and offers a commit.
+- `/model <idea>`: plan a new model and create `models/<slug>/`
+- `/session <model> [goal]`: one short sitting. It loads the brief, params and recent steps, models live in Blender, and logs each step
+- `/checkpoint [msg]`: publish a Speckle version of whatever state it's in
+- `/wrap`: promote steps into builders, then check, export and render. It also distills `workflows/`, checkpoints and offers a commit. Basically cleaning up after the party
 
-By hand:
+bambi is enabled here as a Claude Code plugin. `just print-pack <model>` writes a print pack and `/bambi:print models/<model>` takes it from there. See [`workflows/print-handoff.md`](workflows/print-handoff.md).
+
+### recipes
+
+The `justfile` wraps the common commands:
 
 ```sh
 just                       # list recipes
@@ -42,6 +59,8 @@ just workflows             # workflow docs and the models that use them
 ```
 
 ## models
+
+Every `just render` drops a fresh tile here. Click one for its brief; hover for what the hell it's supposed to be.
 
 <!-- gallery:start -->
 <p align="center">
