@@ -1,29 +1,50 @@
-# Frame: the parametric ring sweep from frame_geo.py. Tune FRAME, then rebuild.
+# Frame: GN_FrameLoft (lib/patterns/frame_loft.py) on a hand-editable Control outline.
+#
+# CTL_Outline is created once as an 11x14" tip-to-tip rectangle (4-point Bezier, vector
+# handles). Reshape it by hand (pull handles to bend the sides) and rebuilds keep it.
+# The bat-wing bow, depth and face shape are modifier inputs, set from params.toml.
+# Sizes derived from the art (sight opening, rabbet) come from frame_geo.py's constants.
 import importlib
 import sys
 from pathlib import Path
 
-from kit import materials, mesh
+import bpy
+from kit import control, gn, materials, params
+from patterns import frame_loft
 
 sys.path.insert(0, str(Path(__file__).parent))
 import frame_geo
 
 importlib.reload(frame_geo)
 
-# Chosen from the explore.py grids (out/explore-edge.png, out/explore-depth.png): sharp
-# horn tips, 15 mm bow + light wobble, 40 mm cove face. Shrunk to 11x14" so the frame hugs
-# the 9x12" art (backboard cut to art size, rabbet deepened for 2 mm glazing).
-FRAME = frame_geo.params(
-    sag=15.0,
-    k=0.5,
-    wobble=3.0,
-    seed=3,
-    depth=40.0,
-    profile="cove",
-)
+W, H = frame_geo.DEFAULTS["width"], frame_geo.DEFAULTS["height"]
 
-wall = frame_geo.validate(FRAME)
-frame = mesh.from_bmesh("Frame", frame_geo.build_bmesh(FRAME))
-pla = materials.principled("PLA_Matte", "#8A8496", roughness=0.65)
-materials.assign(frame, pla)
-print(f"Frame ok, min wall {wall:.1f} mm")
+
+def outline(name):
+    obj = control.curve(
+        name, [(W / 2, H / 2), (-W / 2, H / 2), (-W / 2, -H / 2), (W / 2, -H / 2)],
+        kind="BEZIER",
+    )  # fmt: skip
+    for bp in obj.data.splines[0].bezier_points:
+        bp.handle_left_type = bp.handle_right_type = "VECTOR"
+    return obj
+
+
+ctl = control.ensure("CTL_Outline", outline)
+sw, sh = frame_geo.sight_size()
+rw, rh = frame_geo.rabbet_size()
+frame = gn.host("Frame")
+frame_loft.apply(
+    frame,
+    Outline=ctl,
+    Sight_Width=sw,
+    Sight_Height=sh,
+    Rabbet_Width=rw,
+    Rabbet_Height=rh,
+    Rabbet_Depth=frame_geo.DEFAULTS["rabbet"],
+    Material=materials.principled("PLA_Matte", "#8A8496", roughness=0.65),
+)
+params.apply("base", [frame])  # now, so 20_clips' skin checks see the real shape
+bpy.context.view_layer.update()
+print(f"Frame: outline {ctl.dimensions.x:.1f} x {ctl.dimensions.y:.1f} mm, "
+      f"sight {sw:.1f} x {sh:.1f}, rabbet {rw:.1f} x {rh:.1f}")  # fmt: skip

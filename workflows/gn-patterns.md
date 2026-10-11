@@ -34,6 +34,12 @@ Build a model as a stack of Geometry Nodes pattern modifiers on a host object, d
 | `profile_sweep` | GN_ProfileSweep | Path, Profile, Scale, Fill Caps, Smooth |
 | `outline_extrude` | GN_OutlineExtrude | Outline, Height, Taper, Fillet |
 | `pocket_cut` | GN_PocketCut | Pocket Width/Height/Depth/Bottom/Corner Radius/Center |
+| `frame_loft` | GN_FrameLoft (+ GN_LoftBand) | Outline, Sag, Tip Shape, Edge Height, Depth, Face Power, Sight/Rabbet Width/Height, Rabbet Depth, Samples, Face Rings, Material |
+
+## Lofts (GN_FrameLoft)
+- A freeform outline lofted into a rectangular opening can't be a sweep, because the opening would follow the outline. Instead, loft equal-count point rings with `GN_LoftBand`: a grid of (count+1) × rows, positions sampled by index, z shaped by Power. Chain the bands around the cross-section and merge them.
+- Corner correspondence: build every ring as a subdivided Quadrilateral (top-right first, CCW). The outline ring is its bounding-box rectangle **projected** (Geometry Proximity, edges) onto the Control curve. A Bezier with VECTOR handles evaluates to just its corners, so index-sampling the curve itself doesn't work.
+- Grid vertex index = x × Vertices Y + y.
 
 ## Gotchas
 - **Blender 5 moved modifier inputs** from ID properties (`mod["Socket_2"]`) to `mod.properties.inputs.Socket_2.value`. Always go through `gn.set_input`/`get_input`, which handle both and coerce types (an int into a float socket otherwise errors).

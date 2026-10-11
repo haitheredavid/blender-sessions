@@ -65,7 +65,8 @@ def _frame_xform(piv, inward, z):
 
 
 def _top_z(x, y):
-    ok, loc, *_ = frame.ray_cast(Vector((x, y, 500)), Vector((0, 0, -1)))
+    dg = bpy.context.evaluated_depsgraph_get()  # the GN frame's mesh lives on the eval
+    ok, loc, *_ = frame.ray_cast(Vector((x, y, 500)), Vector((0, 0, -1)), depsgraph=dg)
     return loc.z if ok else None
 
 
@@ -106,10 +107,8 @@ for piv, inward, along in pivots():
 
 cut = mesh.from_bmesh("Cut_ClipPockets", cut_bm, scene.work())
 pil = mesh.from_bmesh("Cut_Pilots", pilot_bm, scene.work())
-for c in (cut, pil):
+for c in (cut, pil):  # live booleans after the GN loft: the frame stays parametric
     mesh.boolean(frame, c).solver = "EXACT"
-mesh.apply_modifiers(frame)
-mesh.clean(frame)
 
 
 def clip_bmesh():

@@ -11,9 +11,9 @@ Chain patterns as a modifier stack on one host object (e.g. profile_sweep, then
 pocket_cut). `blend patterns-lib` writes them all to assets/patterns.blend as assets.
 """
 
-from patterns import outline_extrude, pocket_cut, profile_sweep
+from patterns import frame_loft, outline_extrude, pocket_cut, profile_sweep
 
-ALL = (profile_sweep, outline_extrude, pocket_cut)
+ALL = (profile_sweep, outline_extrude, pocket_cut, frame_loft)
 
 
 def build_all(reset: bool = False) -> list:

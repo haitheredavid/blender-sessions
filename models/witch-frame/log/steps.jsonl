@@ -1,1 +1,2 @@
 {"n": 1, "slug": "checkpoint", "ts": "2026-10-10T20:07:45-04:00", "intent": "first Speckle checkpoint after migration to models/ (bmesh ring-sweep build)", "session": "2026-10-10-initial", "code": null, "objects": [], "params": {}, "speckle_version": "23b410c176"}
+{"n": 2, "slug": "gn-frame-loft", "ts": "2026-10-10T20:12:48-04:00", "intent": "rebuild Frame on GN_FrameLoft with Control outline; clip pockets as live booleans", "session": "2026-10-10-gn-rebuild", "code": "002-gn-frame-loft.py", "objects": ["Frame", "CTL_Outline"], "params": {}, "speckle_version": null}

@@ -1,8 +1,29 @@
-# GN inputs for this model. kit.params pushes [base] (merged with a variant's overrides)
-# into the matching modifier inputs by socket name. Keys are the GN input names.
+# GN_FrameLoft inputs (mm). build_all.py applies [base] last; `blend variants witch-frame`
+# renders every variant; kit.params.grid() lays them out live.
+# Base = the pick from the first session's explore grids: sharp horn tips, 15 mm bow,
+# 40 mm cove face (out/explore-edge.png, out/explore-depth.png).
 
 [base]
-# "Depth" = 40.0
+Sag = 15.0
+"Tip Shape" = 0.5
+"Edge Height" = 12.0
+Depth = 40.0
+"Face Power" = 1.8
 
-# [variants.deep]               # overrides only; every key must exist in [base]
-# "Depth" = 60.0
+[variants.shallow]
+Depth = 28.0
+
+[variants.deep]
+Depth = 60.0
+
+[variants.soft-tips]
+"Tip Shape" = 1.4
+Sag = 12.0
+
+[variants.convex]
+"Face Power" = 0.6
+
+[variants.angled]
+"Edge Height" = 14.0
+Depth = 50.0
+"Face Power" = 1.0

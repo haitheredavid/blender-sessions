@@ -7,9 +7,12 @@ BED = 256.0
 SEAM_T = 0.4
 
 frame = bpy.data.objects["Frame"]
-xs = [v.co.x for v in frame.data.vertices]
-ys = [v.co.y for v in frame.data.vertices]
-zs = [v.co.z for v in frame.data.vertices]
+verts = frame.evaluated_get(
+    bpy.context.evaluated_depsgraph_get()
+).data.vertices  # GN mesh
+xs = [v.co.x for v in verts]
+ys = [v.co.y for v in verts]
+zs = [v.co.z for v in verts]
 w, h, d = max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)
 
 for name, size in (
