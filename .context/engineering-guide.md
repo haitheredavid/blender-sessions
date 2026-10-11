@@ -17,6 +17,7 @@
   - bpy/bmesh only; never import `blend`. They may import `lib/kit` and `lib/patterns` (bpy-only) by putting `lib/` on `sys.path`.
   - Each script takes `--result` and writes JSON there. `_common.py` holds the shared arg and collection helpers.
 - **`lib/kit/`, `lib/patterns/`**: bpy helpers imported by builders and by live MCP code once `lib/` is on `sys.path`. Keep functions small, named by what they build, and idempotent where possible.
+- **`lib/cmdline/`**: Blender side of `blend repl` (`src/blend/repl.py`, `src/blend/bridge.py`): command functions and the persistent-namespace runner, called through the blender-mcp socket. Host-side parsing is tested in `tests/test_repl.py`.
 - **Builders** (`models/<m>/builders/`): model-specific; promote generic helpers into `lib/`.
 
 ## Python style

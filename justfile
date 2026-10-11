@@ -51,6 +51,10 @@ ls:
 open model:
     {{blend}} open {{model}}
 
+# command prompt for the live Blender (commands or Python; --open launches it)
+repl *args:
+    {{blend}} repl "$@"
+
 # start a session note for a model (--goal "...")
 session model name *flags:
     {{blend}} session new "$@"

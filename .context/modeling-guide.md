@@ -46,6 +46,15 @@ Conventions for how a model is built so it stays editable by hand and rebuildabl
 - Non-NN scripts (`explore.py`, `*_geo.py`) are helpers that `build_all` skips.
 - When a helper proves reusable across models, move it to `lib/kit/` or `lib/patterns/`.
 
+## Command line
+
+`just repl [model]` (or `blend repl <m> --open` to launch Blender too) is a command prompt in the terminal for the live Blender, over the same bridge as the agent:
+
+- A line whose first word is a command runs as a call: `gn Frame Depth 40` -> `gn("Frame", "Depth", 40)`. Numbers, `true`/`false` and `1,2,3` are typed; quote names with spaces. Anything else is Python (`C`, `D`, `bpy`, `kit`), in a namespace that persists between inputs.
+- Blender commands: `help`, `ls [pattern]`, `sel <names>`, `zoom`, `gn [obj] [input] [value]`, `save`. Add one with `@command` in `lib/cmdline/commands.py`, then `reset` to reload.
+- Host commands: `log [slug intent...]` writes the model-changing inputs since the last log as a step (`log` alone shows them); `look` opens a viewport screenshot; `reset`; `exit`.
+- Tab completes commands, object names and GN input names. Enter inside a block adds a line; a blank line runs it; Esc-Enter runs as is.
+
 ## Naming
 
 - Meaningful names (`Frame`, `Clip_01`, `Profile_Outer`), never `Cube.003`.

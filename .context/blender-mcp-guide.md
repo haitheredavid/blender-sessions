@@ -38,6 +38,7 @@ How a session works with the live Blender instance through blender-mcp. Read thi
 ## Co-editing protocol
 
 - At the start of every user prompt, re-read the state (`get_scene_info`, or a targeted query). The user may have moved, edited or deleted things since the last step.
+- The user may also be driving Blender from `blend repl` (`modeling-guide.md`) on the same bridge. Its inputs are logged with `log`; check `just history <m>` before assuming the last logged step is yours.
 - **Control** objects belong to the user. Read them freely; change them only when the prompt asks, and say what changed.
 - Modifier inputs are shared knobs. If an input differs from `params.toml`, ask whether the hand value should become the new param before overwriting it.
 - Never apply modifiers, join objects or convert to mesh without saying so. That breaks the live parametric chain (see `modeling-guide.md`). If it is needed, log it as a step named `detach-<obj>`.

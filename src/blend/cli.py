@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
 
-from blend import blender, gallery, grid, printpack
+from blend import blender, bridge, gallery, grid, printpack
 from blend import model as models
 from blend.config import ROOT, get_settings
 from blend.steplog import StepLog
@@ -186,6 +186,37 @@ def open_cmd(ref: ModelArg) -> None:
     _need_blend(s)
     blender.open_gui(s.blend)
     console.print(f"opened {s.blend}")
+
+
+@app.command()
+def repl(
+    ref: Annotated[
+        str | None, typer.Argument(help="Model expected in Blender (warns if not).")
+    ] = None,
+    open_: Annotated[
+        bool,
+        typer.Option("--open", help="Launch Blender on the model if none is running."),
+    ] = False,
+    port: Annotated[int, typer.Option(help="blender-mcp bridge port.")] = bridge.PORT,
+) -> None:
+    """Command prompt for the live Blender: `gn Frame Depth 40`, or any Python."""
+    from blend import repl as repl_mod
+
+    s = _model(ref) if ref else None
+    if not bridge.listening(port):
+        if not (open_ and s):
+            console.print(
+                f"[red]no Blender on port {port}: `just open <model>` first, "
+                "or `blend repl <model> --open`[/red]"
+            )
+            raise typer.Exit(1)
+        _need_blend(s)
+        blender.open_gui(s.blend)
+        console.print(f"[dim]opening {s.blend.name}...[/dim]")
+        if not bridge.wait_listening(port):
+            console.print("[red]Blender did not start its bridge in time[/red]")
+            raise typer.Exit(1)
+    repl_mod.run(bridge.Bridge(port=port), expect=s)
 
 
 # --- sessions and steps -------------------------------------------------------
