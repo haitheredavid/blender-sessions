@@ -30,6 +30,7 @@ Conventions for how a model is built so it stays editable by hand and rebuildabl
 - Set and read inputs **by socket name** through `kit.gn.set_input` / `get_input`. Never hardcode `Socket_N` identifiers.
 - Input names double as `params.toml` keys. Keep them unique across patterns (prefix like `Pocket Width`), or scope a key: `"Frame/Height"`.
 - Look nodes up by `bl_idname`/type, never by display name.
+- Group nodes into numbered, labelled stages (`gn.stage`) so the tree reads in the editor. The user reviews the model there.
 - Reusable groups live in `lib/patterns/` (see `workflows/gn-patterns.md`).
 - Encode constraints as checks: a builder or `validate(p)` asserts min wall, envelope and clearances before showing a result.
 

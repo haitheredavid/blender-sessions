@@ -26,7 +26,8 @@ Build a model as a stack of Geometry Nodes pattern modifiers on a host object, d
 4. **Compare.**
    - Live: `params.grid()`, then `look`, then `params.clear_grid()`.
    - Rendered: `just` → `uv run blend variants <m>` writes `out/variants.png`.
-5. **New pattern.** When a model-specific node tree proves reusable, move it to `lib/patterns/<name>.py` with `NAME`, `build(reset)` and `apply`. Add it to `patterns.ALL` and run `uv run blend patterns-lib`.
+5. **Readable trees.** Wrap each step of a builder in `with gn.stage(t, "1 · Outline ring"):`. `gn.arrange(t)` then lays the stages out left to right, each in a labelled, tinted Frame box, so the tree reads like the builder. Number the labels in flow order.
+6. **New pattern.** When a model-specific node tree proves reusable, move it to `lib/patterns/<name>.py` with `NAME`, `build(reset)` and `apply`. Add it to `patterns.ALL` and run `uv run blend patterns-lib`.
 
 ## Patterns
 | module | group | inputs |

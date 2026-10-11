@@ -24,44 +24,47 @@ def build(reset: bool = False):
     gn.output(t, "Geometry")
     gin, gout = gn.io(t)
 
-    src = gn.node(t, "GeometryNodeObjectInfo", "Source")
-    gn.link(t, gin, "Source", src, "Object")
-    real = gn.node(t, "GeometryNodeRealizeInstances")
-    gn.link(t, src, "Geometry", real, "Geometry")
-
-    size = gn.node(t, "ShaderNodeVectorMath", props={"operation": "SUBTRACT"})
-    gn.link(t, gin, "Box Max", size, 0)
-    gn.link(t, gin, "Box Min", size, 1)
-    mid = gn.node(t, "ShaderNodeVectorMath", props={"operation": "ADD"})
-    gn.link(t, gin, "Box Max", mid, 0)
-    gn.link(t, gin, "Box Min", mid, 1)
-    half = gn.node(t, "ShaderNodeVectorMath", props={"operation": "SCALE"})
-    gn.link(t, mid, 0, half, 0)
-    half.inputs["Scale"].default_value = 0.5
-    cube = gn.node(t, "GeometryNodeMeshCube")
-    gn.link(t, size, 0, cube, "Size")
-    box = gn.node(t, "GeometryNodeTransform")
-    gn.link(t, cube, "Mesh", box, "Geometry")
-    gn.link(t, half, 0, box, "Translation")
-
-    keep = gn.node(
-        t,
-        "GeometryNodeMeshBoolean",
-        props={"operation": "INTERSECT", "solver": "EXACT"},
-    )
-    gn.link(t, real, "Geometry", keep, "Mesh 2")  # INTERSECT takes all inputs in Mesh 2
-    gn.link(t, box, "Geometry", keep, "Mesh 2")
-
-    cut = gn.node(t, "GeometryNodeObjectInfo", "Cutter")
-    gn.link(t, gin, "Cutter", cut, "Object")
-    sub = gn.node(
-        t,
-        "GeometryNodeMeshBoolean",
-        props={"operation": "DIFFERENCE", "solver": "EXACT"},
-    )
-    gn.link(t, keep, "Mesh", sub, "Mesh 1")
-    gn.link(t, cut, "Geometry", sub, "Mesh 2")
-    gn.link(t, sub, "Mesh", gout, "Geometry")
+    with gn.stage(t, "1 · Source geometry"):
+        src = gn.node(t, "GeometryNodeObjectInfo", "Source")
+        gn.link(t, gin, "Source", src, "Object")
+        real = gn.node(t, "GeometryNodeRealizeInstances")
+        gn.link(t, src, "Geometry", real, "Geometry")
+    with gn.stage(t, "2 · Quadrant box"):
+        size = gn.node(t, "ShaderNodeVectorMath", props={"operation": "SUBTRACT"})
+        gn.link(t, gin, "Box Max", size, 0)
+        gn.link(t, gin, "Box Min", size, 1)
+        mid = gn.node(t, "ShaderNodeVectorMath", props={"operation": "ADD"})
+        gn.link(t, gin, "Box Max", mid, 0)
+        gn.link(t, gin, "Box Min", mid, 1)
+        half = gn.node(t, "ShaderNodeVectorMath", props={"operation": "SCALE"})
+        gn.link(t, mid, 0, half, 0)
+        half.inputs["Scale"].default_value = 0.5
+        cube = gn.node(t, "GeometryNodeMeshCube")
+        gn.link(t, size, 0, cube, "Size")
+        box = gn.node(t, "GeometryNodeTransform")
+        gn.link(t, cube, "Mesh", box, "Geometry")
+        gn.link(t, half, 0, box, "Translation")
+    with gn.stage(t, "3 · Keep inside box (intersect)"):
+        keep = gn.node(
+            t,
+            "GeometryNodeMeshBoolean",
+            props={"operation": "INTERSECT", "solver": "EXACT"},
+        )
+        gn.link(
+            t, real, "Geometry", keep, "Mesh 2"
+        )  # INTERSECT takes all inputs in Mesh 2
+        gn.link(t, box, "Geometry", keep, "Mesh 2")
+    with gn.stage(t, "4 · Subtract cutter (joinery)"):
+        cut = gn.node(t, "GeometryNodeObjectInfo", "Cutter")
+        gn.link(t, gin, "Cutter", cut, "Object")
+        sub = gn.node(
+            t,
+            "GeometryNodeMeshBoolean",
+            props={"operation": "DIFFERENCE", "solver": "EXACT"},
+        )
+        gn.link(t, keep, "Mesh", sub, "Mesh 1")
+        gn.link(t, cut, "Geometry", sub, "Mesh 2")
+        gn.link(t, sub, "Mesh", gout, "Geometry")
     gn.arrange(t)
     gn.stamp(t, __file__)
     return t

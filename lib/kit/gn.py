@@ -15,6 +15,8 @@ mod.properties.inputs.Socket_2.value; set_input/get_input handle both.
     gn.set_input(mod, "Depth", 55.0)
 """
 
+from contextlib import contextmanager
+
 import bpy
 
 SOCKET_TYPES = {
@@ -146,23 +148,94 @@ def link(t, a, a_out, b, b_in):
     return t.links.new(_socket(a.outputs, a_out), _socket(b.inputs, b_in))
 
 
-def arrange(t, dx: float = 220.0, dy: float = 180.0) -> None:
-    """Lay nodes out left-to-right by link depth so the tree reads in the node editor."""
-    depth = {n: 0 for n in t.nodes}
-    for _ in range(len(t.nodes)):
+_STAGES: dict[str, list[tuple[str, list[str]]]] = {}
+COLORS = [  # muted frame tints, cycled per stage
+    (0.30, 0.38, 0.50), (0.42, 0.33, 0.50), (0.30, 0.45, 0.38),
+    (0.50, 0.40, 0.28), (0.45, 0.30, 0.33), (0.30, 0.43, 0.48),
+]  # fmt: skip
+
+
+@contextmanager
+def stage(t, label: str):
+    """Group the nodes created inside the block under a labelled Frame box; arrange()
+    lays stages out left to right in the order they were declared.
+
+        with gn.stage(t, "1 · Outline ring"):
+            ...nodes...
+    """
+    before = {n.name for n in t.nodes}
+    yield
+    new = [
+        n.name for n in t.nodes if n.name not in before and n.bl_idname != "NodeFrame"
+    ]
+    _STAGES.setdefault(t.name, []).append((label, new))
+
+
+def _depths(t) -> dict:
+    depth = {n.name: 0 for n in t.nodes if n.bl_idname != "NodeFrame"}
+    for _ in range(len(depth)):
         changed = False
         for lk in t.links:
-            d = depth[lk.from_node] + 1
-            if d > depth[lk.to_node]:
-                depth[lk.to_node], changed = d, True
+            d = depth[lk.from_node.name] + 1
+            if d > depth[lk.to_node.name]:
+                depth[lk.to_node.name], changed = d, True
         if not changed:
             break
-    columns: dict[int, list] = {}
-    for n, d in depth.items():
-        columns.setdefault(d, []).append(n)
-    for d, nodes in columns.items():
-        for i, n in enumerate(nodes):
-            n.location = (d * dx, -i * dy)
+    return depth
+
+
+def _place(n, x: float, y: float) -> None:
+    if hasattr(n, "location_absolute"):  # Blender 4.4+: location is parent-relative
+        n.location_absolute = (x, y)
+    else:
+        n.location = (x, y)
+
+
+def arrange(t, dx: float = 220.0, dy: float = 180.0, gap: float = 160.0) -> None:
+    """Lay nodes out left-to-right by link depth so the tree reads in the node editor.
+    With stage() blocks, each stage gets its own column band (in declaration order) and
+    a labelled, tinted Frame box; group input sits left, group output right."""
+    for n in [n for n in t.nodes if n.bl_idname == "NodeFrame"]:
+        t.nodes.remove(n)
+    depth = _depths(t)
+    stages = _STAGES.pop(t.name, [])
+    if not stages:
+        columns: dict[int, list] = {}
+        for name, d in depth.items():
+            columns.setdefault(d, []).append(t.nodes[name])
+        for d, nodes in columns.items():
+            for i, n in enumerate(nodes):
+                _place(n, d * dx, -i * dy)
+        return
+    staged = {name for _, names in stages for name in names}
+    x = 0.0
+    loose = [t.nodes[n] for n in depth if n not in staged]
+    gin = [n for n in loose if n.bl_idname == "NodeGroupInput"]
+    gout = [n for n in loose if n.bl_idname == "NodeGroupOutput"]
+    for i, n in enumerate(gin):
+        _place(n, x, -i * dy)
+    x += dx + gap
+    for k, (label, names) in enumerate(stages):
+        if not names:
+            continue
+        lo = min(depth[n] for n in names)
+        cols: dict[int, list] = {}
+        for name in names:
+            cols.setdefault(depth[name] - lo, []).append(t.nodes[name])
+        frame = t.nodes.new("NodeFrame")
+        frame.label = label
+        frame.label_size = 28
+        frame.use_custom_color = True
+        frame.color = COLORS[k % len(COLORS)]
+        for c, nodes in sorted(cols.items()):
+            for i, n in enumerate(nodes):
+                n.parent = frame
+                _place(n, x + c * dx, -i * dy)
+        x += (max(cols) + 1) * dx + gap
+    for i, n in enumerate(n for n in loose if n not in gin and n not in gout):
+        _place(n, x, -i * dy)
+    for i, n in enumerate(gout):
+        _place(n, x + dx, -i * dy)
 
 
 # --- modifiers -----------------------------------------------------------------
