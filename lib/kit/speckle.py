@@ -8,7 +8,7 @@ the connector; nothing here reads or prints tokens.
 
     from kit import speckle
     cfg = speckle.config()                       # model.toml [speckle]
-    model_id = speckle.ensure_model(cfg, "wispy-witch-frame")
+    model_id = speckle.ensure_model(cfg, "witch-frame")
     vid = speckle.publish(cfg, model_id, props={"variant": "base", "step": 12})
     speckle.load(cfg, model_id)                  # latest version into Ref, for comparison
 """

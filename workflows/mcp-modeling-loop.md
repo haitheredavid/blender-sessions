@@ -44,4 +44,4 @@ bsdf = next(n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
 - **Put constraints in the builder as asserts** (min wall, envelope, skin over holes). Bad params then fail loudly on rebuild.
 
 ## Models
-- wispy-witch-frame (2026-10-10): first session; added the mm-unit, session-module and builder-assert notes.
+- witch-frame (2026-10-10): first session; added the mm-unit, session-module and builder-assert notes.

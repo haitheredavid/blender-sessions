@@ -1,7 +1,7 @@
 # Ref-only proxies (never exported): the rabbet stack (backboard, art, glazing) to judge
 # fit and the sightwell shadow, and the user's sketch as an image empty. build_all doesn't
 # clear Ref, so this step clears its own. The art face shows the cropped illustration
-# (refs/wispy-witch-frame/illustration_crop.png, made by crop_art.py).
+# (refs/witch-frame/illustration_crop.png, made by crop_art.py).
 import sys
 from pathlib import Path
 
@@ -11,7 +11,7 @@ from kit import materials, mesh, scene
 sys.path.insert(0, str(Path(__file__).parent))
 import frame_geo
 
-REFS = Path(__file__).parents[3] / "refs/wispy-witch-frame"
+REFS = Path(__file__).parents[3] / "refs/witch-frame"
 
 ref = scene.collection(scene.REF)
 for name in ("Backboard_Proxy", "Art_Proxy", "Glazing_Proxy", "Sketch_Ref"):

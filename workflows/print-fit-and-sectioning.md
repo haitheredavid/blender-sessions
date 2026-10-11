@@ -35,7 +35,7 @@ rabbet_wh = [max(a, b) + 2 * 0.5 for a, b in zip(BACKBOARD[:2], GLAZING[:2])]
 ok, loc, *_ = frame.ray_cast(Vector((x, y, 500)), Vector((0, 0, -1)))
 assert loc.z - PILOT_TOP >= 3.0  # skin above the pilot
 ```
-Reference: `models/wispy-witch-frame/builders/frame_geo.py`, `20_clips.py`, `40_sections.py`.
+Reference: `models/witch-frame/builders/frame_geo.py`, `20_clips.py`, `40_sections.py`.
 
 ## Gotchas
 - **OBJ export is Y-up** (mm values are correct). Some slicers lay it on its side, so rotate it before slicing.
@@ -43,4 +43,4 @@ Reference: `models/wispy-witch-frame/builders/frame_geo.py`, `20_clips.py`, `40_
 - **Stack thicknesses are assumptions** (2 mm acrylic, 3 mm board). Record them in notes and confirm with the user.
 
 ## Models
-- wispy-witch-frame (2026-10-10): 11×14" frame for 9×12" art; 9 mm rabbet (glazing, art on board, clip zone), 8 turn clips, 4 corner sections (139.7 × 177.8) for a 256 mm bed.
+- witch-frame (2026-10-10): 11×14" frame for 9×12" art; 9 mm rabbet (glazing, art on board, clip zone), 8 turn clips, 4 corner sections (139.7 × 177.8) for a 256 mm bed.

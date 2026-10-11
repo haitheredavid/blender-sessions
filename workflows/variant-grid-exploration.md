@@ -31,7 +31,7 @@ g["grid"](rows, base={"depth": 40})
 # ... look ...
 g["clear"]()
 ```
-Reference implementation: `models/wispy-witch-frame/builders/explore.py`.
+Reference implementation: `models/witch-frame/builders/explore.py`.
 
 ## Gotchas
 - **Grid order:** row 0 sits at y=0, and later rows go to −y. From a front 3/4 view the *last* row is nearest the camera, so say which row is which when asking.
@@ -39,4 +39,4 @@ Reference implementation: `models/wispy-witch-frame/builders/explore.py`.
 - **Run `build_all` after `clear()`.** The grid shares materials and may leave the Model hidden.
 
 ## Models
-- wispy-witch-frame (2026-10-10): edge grid (sag × tip sharpness, plus wobble) and depth grid (25/40/55 × linear/cove/convex); the user picked from the screenshots.
+- witch-frame (2026-10-10): edge grid (sag × tip sharpness, plus wobble) and depth grid (25/40/55 × linear/cove/convex); the user picked from the screenshots.

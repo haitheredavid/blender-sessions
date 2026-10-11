@@ -1,7 +1,7 @@
 ---
 Created: 2026-10-10
 ---
-# wispy-witch-frame
+# witch-frame
 
 This project will model out a frame that will be 3d printed. The frame will hold an illustration of a witch at night hovering over the water. The design of the frame should be a single material that has slighty whispy curve on the outside edge of the frame as the main design feature, which should be styled in a way that a bats wing curves or how a witches hosue might be shapped. Something like that but we might need to discuss this.
 

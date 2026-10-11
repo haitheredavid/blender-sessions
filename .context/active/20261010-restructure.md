@@ -2,7 +2,7 @@
 
 ## Progress
 - [x] Phase 0: context (AGENTS.md, CLAUDE.md shim, `.context/` guides)
-- [x] Phase 1: structure + witch frame migrated to `models/wispy-witch-frame`, refs → `refs/`
+- [x] Phase 1: structure + witch frame migrated to `models/witch-frame`, refs → `refs/`
 - [x] Phase 2: parametric. `kit.gn`/`params`/`control`, three patterns, `assets/patterns.blend`, `blend variants`. Variants changed from one-scene-per-variant to: live `params.grid()` (object copies in Work/Variants) and headless `render_studio --params` per variant. That's simpler and needs no persistent scenes.
 - [x] Phase 3: Speckle. The connector was built from GitHub main and installed in 5.2. `kit.speckle` wraps publish_operation/load_operation with an explicit account (haitheredavid@gmail.com), and `/checkpoint` exists. The project is `blender-sessions` and models are named `<m>[/<variant>]`. **Pending:** first real publish (needs user OK; project is PUBLIC).
 - [x] Phase 4: expansions: `kit.gp` (sketch → curve), `kit.annotate` (live GN dimensions), `kit.anim` + `blend animate`, STL/3MF export.
@@ -10,7 +10,7 @@
 
 ## Notes since planning
 - `workflows/variant-grid-exploration.md` already covers the explore-grid technique (witch frame). Phase 2 variants build on it and don't replace it.
-- The witch frame lives at `sessions/2026-10-10-wispy-witch-frame/` with a session-level `status = "done"`. Phase 1 migrates it to `models/wispy-witch-frame/` (git mv). Its builders are bmesh-based; Phase 5 reworks them onto GN.
+- The witch frame lives at `sessions/2026-10-10-witch-frame/` with a session-level `status = "done"`. Phase 1 migrates it to `models/witch-frame/` (git mv). Its builders are bmesh-based; Phase 5 reworks them onto GN.
 - Guides in `.context/` describe the target conventions. Code catches up phase by phase.
 
 ## Context

@@ -46,7 +46,7 @@ u = Vector(
     (outward.y, -outward.x)
 )  # NOT "along" from the caller: half the corners mirror
 ```
-Full implementation: `models/wispy-witch-frame/builders/frame_geo.py` (outline, `validate`, `build_bmesh`) and `20_clips.py` (pockets, pilots, clips).
+Full implementation: `models/witch-frame/builders/frame_geo.py` (outline, `validate`, `build_bmesh`) and `20_clips.py` (pockets, pilots, clips).
 
 ## Gotchas
 - **Lerping the face rings** from outline to sight rect works because both are star-shaped around the centre. A concave outline that folds back would self-intersect, so keep the sag modest relative to the side length.
@@ -56,4 +56,4 @@ Full implementation: `models/wispy-witch-frame/builders/frame_geo.py` (outline, 
 - **Section-cut copies:** offset them *toward* the viewing camera, or the real model sits between the camera and the cut (see [render-views-and-sections](render-views-and-sections.md)).
 
 ## Models
-- wispy-witch-frame (2026-10-10): 3D-printable frame with bat-wing bowed sides, cove face, 33 mm sightwell, 9 mm rabbet (glazing + art + clip zone) and 8 turn-clip pockets.
+- witch-frame (2026-10-10): 3D-printable frame with bat-wing bowed sides, cove face, 33 mm sightwell, 9 mm rabbet (glazing + art + clip zone) and 8 turn-clip pockets.

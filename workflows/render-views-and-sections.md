@@ -38,4 +38,4 @@ m.translation = target + z * dist
 - **mm sessions need the viewport clip range scaled.** Defaults are 1000 BU = 1 m; `setup_scene.py` now scales it. Cameras need `clip_end` in mm too.
 
 ## Models
-- wispy-witch-frame (2026-10-10): added `blend views` (hero, front, profile, plan, back, corner, clip), `Cam_*` cameras and a red-capped live section of frame + clips + art stack.
+- witch-frame (2026-10-10): added `blend views` (hero, front, profile, plan, back, corner, clip), `Cam_*` cameras and a red-capped live section of frame + clips + art stack.

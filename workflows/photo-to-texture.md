@@ -35,7 +35,7 @@ for a in bpy.context.screen.areas:
     if a.type == "VIEW_3D":
         a.spaces.active.shading.color_type = "TEXTURE"  # check the enum first
 ```
-Reference: `models/wispy-witch-frame/builders/crop_art.py` (detection, homography, border cleanup) and `30_proxies.py` (material and UVs).
+Reference: `models/witch-frame/builders/crop_art.py` (detection, homography, border cleanup) and `30_proxies.py` (material and UVs).
 
 ## Gotchas
 - **Solid mode ignores Generated coords and shows the material's viewport colour.** It needs UVs plus `color_type = "TEXTURE"`.
@@ -43,4 +43,4 @@ Reference: `models/wispy-witch-frame/builders/crop_art.py` (detection, homograph
 - **`bpy.data.images.load` + `foreach_get` on a 12 MP photo is about 31M floats.** That's fine, but remove the datablock afterwards.
 
 ## Models
-- wispy-witch-frame (2026-10-10): cropped the witch illustration photo to the 9×12" paper with its white border and showed it inside the frame.
+- witch-frame (2026-10-10): cropped the witch illustration photo to the 9×12" paper with its white border and showed it inside the frame.

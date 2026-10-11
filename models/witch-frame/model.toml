@@ -1,4 +1,4 @@
-name = "wispy-witch-frame"
+name = "witch-frame"
 created = "2026-10-10"
 intent = "3D-printable shadow-box frame for a 9x12in witch illustration: concave bat-wing sides with flared corner tips, a face sloping from a thin outer edge into a deep sightwell, and a rabbet with turn clips for a 10x13in backboard."                   # what is this model, and what is it for?
 status = "active"             # active | done (`blend model done` sets it)
