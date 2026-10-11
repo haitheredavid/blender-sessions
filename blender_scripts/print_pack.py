@@ -1,13 +1,18 @@
 """Bake a collection's parts into a print-ready handoff: parts.blend + one STL per part.
 
 Usage: blender -b model.blend -P print_pack.py -- --outdir models/<m>/print
-       [--collection Print] [--gap 5] [--bed 256] [--flat 'Tenon_*' ...] --result r.json
+       [--collection Print] [--gap 5] [--bed 256] [--flat 'Tenon_*' ...]
+       [--rules '[{"match": "Clip_*", "rotate": [90, 0, 0]}]'] --result r.json
 
 For a printing agent (e.g. bambi), which exports every visible mesh of a mm .blend:
 - every visible mesh in the collection is evaluated (modifiers, GN, booleans applied) into
   a plain mesh with its world transform baked in, keeping materials;
 - each part is dropped onto the bed (lowest point at z=0) in its modelled orientation,
   unless its name matches a --flat pattern: then its largest flat face goes down;
+  --rules ([[print.part]] match/flat/rotate, later rules win key by key) can set flat
+  per part or rotate it (Euler XYZ degrees) before it is dropped; flat beats rotate;
+- each part's "joints" / "fit" custom properties (JSON string or ID property) are
+  passed through to the result for the manifest;
 - parts are laid out in non-overlapping rows (gap mm apart) so nothing collides;
 - parts.blend contains only those parts, in mm (1 BU = 1 mm), saved as a new file;
 - each part is also written as <name>.stl in Blender units (mm).
@@ -16,6 +21,8 @@ footprint, and flags any part larger than the bed.
 """
 
 import argparse
+import json
+import math
 import sys
 from collections import defaultdict
 from fnmatch import fnmatch
@@ -26,7 +33,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 import bmesh
 import bpy
 from _common import model_objects, parse, write_result
-from mathutils import Matrix, Vector
+from mathutils import Euler, Matrix, Vector
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--outdir", required=True)
@@ -34,7 +41,9 @@ parser.add_argument("--collection", default="Print")
 parser.add_argument("--gap", type=float, default=5.0)
 parser.add_argument("--bed", type=float, default=256.0)
 parser.add_argument("--flat", action="append", default=[], help="part name glob")
+parser.add_argument("--rules", default="[]", help="JSON [{match, flat?, rotate?}]")
 opts = parse(parser)
+rules = json.loads(opts.rules)
 
 scene = bpy.context.scene
 per_bu = scene.unit_settings.scale_length or 1.0
@@ -54,16 +63,59 @@ def lay_flat(me) -> None:
     me.transform(down.rotation_difference(Vector((0, 0, -1))).to_matrix().to_4x4())
 
 
+def matches(name: str, match) -> bool:
+    globs = [match] if isinstance(match, str) else match
+    return any(fnmatch(name, g) for g in globs)
+
+
+def placement(name: str) -> tuple[bool, list[float]]:
+    """(lay flat?, rotate degrees) for a part: --flat globs, then rules, later wins."""
+    merged = {}
+    for rule in rules:
+        if matches(name, rule["match"]):
+            merged.update(rule)
+    flat = merged.get("flat", any(fnmatch(name, pat) for pat in opts.flat))
+    rotate = [float(a) for a in merged.get("rotate", (0, 0, 0))]
+    return bool(flat), ([0.0, 0.0, 0.0] if flat else rotate)
+
+
+def plain(value):
+    """ID property (group, array, list) or JSON string -> plain JSON data."""
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except ValueError:
+            return value
+    if hasattr(value, "to_dict"):
+        return {k: plain(v) for k, v in value.to_dict().items()}
+    if hasattr(value, "to_list"):
+        return [plain(v) for v in value.to_list()]
+    if isinstance(value, list | tuple):
+        return [plain(v) for v in value]
+    if isinstance(value, dict):
+        return {k: plain(v) for k, v in value.items()}
+    return value
+
+
 baked = []
 flat = set()
+rotated = {}
+extras = {}
 for src in sources:
     me = bpy.data.meshes.new_from_object(src.evaluated_get(dg), depsgraph=dg)
     me.transform(src.matrix_world)
     if mm != 1.0:  # normalise to 1 BU = 1 mm
         me.transform(Matrix.Scale(1.0 / mm, 4))
-    if any(fnmatch(src.name, pat) for pat in opts.flat):
+    lay, rotate = placement(src.name)
+    if lay:
         lay_flat(me)
         flat.add(src.name)
+    elif any(rotate):
+        me.transform(
+            Euler([math.radians(a) for a in rotate], "XYZ").to_matrix().to_4x4()
+        )
+    rotated[src.name] = rotate
+    extras[src.name] = {k: plain(src[k]) for k in ("joints", "fit") if k in src}
     me.name = src.name
     baked.append((src.name, me))
 
@@ -108,6 +160,8 @@ for name, me, lo, hi in items:
             "manifold": manifold,
             "fits_bed": max(w, d) <= opts.bed and h <= opts.bed,
             "flat": name in flat,
+            "rotate_deg": rotated[name],
+            **extras[name],
         }
     )
     x += w + opts.gap

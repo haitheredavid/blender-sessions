@@ -21,6 +21,16 @@ FRAMINGS = (
 )  # `blend render`: zoom to the model, or pull back for context
 EXPORT_FORMATS = ("glb", "fbx", "obj", "stl", "3mf")
 EXPORT_SUFFIXES = {f".{f}" for f in EXPORT_FORMATS}
+# [print] keys a [print.<collection>] pack does not inherit from the main pack
+PER_PACK_KEYS = (
+    "orientation",
+    "flat",
+    "hardware",
+    "assembly",
+    "intent",
+    "feedback_applied",
+    "feedback_declined",
+)
 SESSION_NOTE = """\
 # {date} {slug}
 
@@ -225,11 +235,17 @@ class Model:
         """[print]: handoff settings for `blend print-pack` (collection, bed, material,
         printer, orientation, flat part globs, hardware, assembly notes). For another
         collection, its [print.<collection>] table replaces the notes (orientation,
-        flat, hardware, assembly) and keeps the printer settings."""
+        flat, hardware, assembly, intent, feedback_*) and keeps the printer settings.
+
+        Arrays of tables ([[print.part]], [[print.filament]], [[print.coupon]]) are
+        lists, so they stay in the base; a collection inherits them unless its own
+        table defines them ([[print.<collection>.part]] etc.), which replaces them.
+        feedback_applied/declined never inherit: recommendation ids are per pack
+        (each pack has its own results.json)."""
         base = self.config.get("print", {})
         cfg = {k: v for k, v in base.items() if not isinstance(v, dict)}
         if collection:
-            for key in ("orientation", "flat", "hardware", "assembly"):
+            for key in PER_PACK_KEYS:
                 cfg.pop(key, None)
             cfg.update(base.get(collection, {}), collection=collection)
         cfg.setdefault("collection", "Print")

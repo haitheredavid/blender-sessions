@@ -15,6 +15,9 @@ wheels/
 *.blend@
 models/*/out/*
 !models/*/out/.gitkeep
+# bambi scratch in print packs (session.toml, results.json, thumb.png are committed)
+models/*/print/**/out/
+models/*/print/**/check.json
 .DS_Store
 
 **/worktrees/

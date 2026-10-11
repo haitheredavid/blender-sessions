@@ -166,3 +166,29 @@ def test_print_options_per_collection(models_dir):
     assert coupon["collection"] == "Coupon" and coupon["bed"] == 220
     assert coupon["orientation"] == "back down"
     assert "flat" not in coupon and "assembly" not in coupon
+
+
+def test_print_options_part_rules_inherit_feedback_does_not(models_dir):
+    m = models.create("frame", base=models_dir)
+    m.toml.write_text(
+        m.toml.read_text()
+        + '\n[[print.part]]\nmatch = "Piece_*"\nsupports = "none"\n'
+        + '\n[[print.coupon]]\nid = "tenon-E"\n'
+        + '\n[print.Coupon]\nintent = "fit test"\nfeedback_applied = ["rec-9"]\n'
+        + '\n[print.Strip]\n\n[[print.Strip.part]]\nmatch = "*"\nflat = true\n'
+    )
+    text = m.toml.read_text().replace(
+        "\nbed = 256", '\nbed = 256\nintent = "frame"\nfeedback_applied = ["rec-1"]'
+    )
+    m.toml.write_text(text)
+    main = m.print_options()
+    assert main["part"][0]["match"] == "Piece_*" and main["feedback_applied"] == [
+        "rec-1"
+    ]
+    assert "Coupon" not in main and "Strip" not in main
+    coupon = m.print_options("Coupon")
+    assert coupon["part"] == main["part"] and coupon["coupon"][0]["id"] == "tenon-E"
+    assert coupon["intent"] == "fit test" and coupon["feedback_applied"] == ["rec-9"]
+    strip = m.print_options("Strip")
+    assert strip["part"] == [{"match": "*", "flat": True}]
+    assert "intent" not in strip and "feedback_applied" not in strip

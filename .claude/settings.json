@@ -7,8 +7,26 @@
       "mcp__blender__get_scene_info",
       "mcp__blender__look",
       "mcp__blender__execute_blender_code",
-      "mcp__blender__search_assets"
+      "mcp__blender__search_assets",
+      "Bash(bambi init:*)",
+      "Bash(bambi check:*)",
+      "Bash(bambi plan:*)",
+      "Bash(bambi status:*)",
+      "Bash(bambi ls:*)"
     ]
   },
-  "enabledMcpjsonServers": ["blender"]
+  "enabledMcpjsonServers": [
+    "blender"
+  ],
+  "extraKnownMarketplaces": {
+    "bambi": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/david/projects/bambi"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "bambi@bambi": true
+  }
 }

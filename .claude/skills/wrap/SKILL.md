@@ -23,6 +23,10 @@ Arguments: $ARGUMENTS. With no model, use the one worked on in this conversation
 1. `just check <m>`. Fix issues, or record why they're acceptable.
 2. `just export <m>`, then `just render <m>`. Read `render.png`. If the model has `[[views]]`, run `just views <m>`.
 3. `just turntable <m>` if `--turntable` is set or the user asks.
+4. **Printable models** (a `print/` pack exists): run `uv run blend print-results <m>` (and `--pack <x>` for each extra pack with a `results.json`). Walk the **pending** recommendations with the user, one at a time:
+   - **apply**: edit `model.toml` or the builder, rebuild, and add the id to `[print] feedback_applied` (`[print.<Coll>]` for an extra pack);
+   - **decline**: add the id to `feedback_declined`, with a comment saying why.
+   If any were applied (or the model changed since the last pack), re-pack: `just print-pack <m> [--collection X]`. Note stale-slice flags in the session note; slicing again is `/bambi:print`.
 
 ## 3. Record
 

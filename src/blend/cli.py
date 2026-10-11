@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.markup import escape
 from rich.table import Table
 
-from blend import blender, bridge, gallery, grid, printpack
+from blend import blender, bridge, gallery, grid, printpack, printresults
 from blend import model as models
 from blend.config import ROOT, get_settings
 from blend.steplog import StepLog
@@ -684,6 +684,19 @@ def variants(
     console.print(f"[green]wrote[/green] {sheet.relative_to(ROOT)}")
 
 
+def _git_commit() -> str:
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return ""
+
+
 @app.command("print-pack")
 def print_pack(
     ref: ModelArg,
@@ -700,35 +713,122 @@ def print_pack(
     s = _model(ref)
     _need_blend(s)
     cfg = s.print_options(collection)
+    try:
+        printpack.validate(cfg)
+    except ValueError as e:
+        console.print(f"[red]{escape(str(e))}[/red]")
+        raise typer.Exit(1)
+    pack = collection.lower() if collection else "print"
     out = s.path / "print"
     if collection:
-        out = out / collection.lower()
-    args = ["--outdir", str(out), "--collection", cfg["collection"]]
-    args += ["--bed", str(cfg["bed"])]
-    for pat in cfg.get("flat", []):
-        args += ["--flat", pat]
+        out = out / pack
+    args = ["--outdir", str(out), *printpack.blender_args(cfg)]
     res = _run("print_pack.py", blend=s.blend, args=args)
-    m = printpack.manifest(s.name, res, cfg, ROOT)
+    source = {"commit": _git_commit(), "blend": str(s.blend.relative_to(ROOT))}
+    intent = cfg.get("intent") or s.config.get("intent", "")
+    m = printpack.manifest(
+        s.name, res, cfg, ROOT, pack=pack, intent=intent, source=source
+    )
     printpack.write(out, m)
-    table = Table("part", "size (mm)", "cm³", "watertight", "fits bed")
+    table = Table("part", "size (mm)", "cm³", "watertight", "fits bed", "intent")
     bad = False
     for p in m["parts"]:
         ok = p["manifold"] and p["fits_bed"]
         bad |= not ok
+        o = p["orientation"]
+        intent_bits = [o["mode"]] + [
+            f"{k} {v}"
+            for k, v in (
+                ("supports", (p.get("supports") or {}).get("policy")),
+                ("fil", p["filament"]),
+                ("colour", (p.get("colour") or {}).get("method")),
+                ("joints", len(p.get("joints", [])) or None),
+            )
+            if v
+        ]
         table.add_row(
             p["name"],
             " x ".join(f"{v:g}" for v in p["size"]),
             f"{p['volume_cm3']:g}",
             "yes" if p["manifold"] else "[red]NO[/red]",
             "yes" if p["fits_bed"] else "[red]NO[/red]",
+            ", ".join(map(str, intent_bits)),
         )
     console.print(table)
+    for w in printpack.lint(m, cfg):
+        console.print(f"[yellow]{escape(w)}[/yellow]")
     console.print(
         f"{len(m['parts'])} parts, {m['total_volume_cm3']} cm³, "
         f"{len(m['plates_suggested'])} suggested plates -> {out.relative_to(ROOT)}/"
     )
     if bad:
         raise typer.Exit(1)
+
+
+@app.command("print-results")
+def print_results(
+    ref: ModelArg,
+    pack: Annotated[
+        str,
+        typer.Option(
+            help="Pack folder under print/ (e.g. coupon); main pack if empty."
+        ),
+    ] = "",
+    as_json: Annotated[bool, typer.Option("--json", help="Print JSON.")] = False,
+) -> None:
+    """What bambi logged for a print pack (results.json): runs, and recommendations
+    with their status (pending / applied / declined)."""
+    s = _model(ref)
+    pack_dir = s.path / "print" / pack.lower() if pack else s.path / "print"
+    shown = pack_dir.relative_to(ROOT) if pack_dir.is_relative_to(ROOT) else pack_dir
+    if not (pack_dir / printresults.RESULTS).exists():
+        console.print(
+            f"[yellow]no {printresults.RESULTS} in {shown}[/yellow]"
+            " (bambi writes it on check/slice/print)"
+        )
+        raise typer.Exit(1)
+    collection = next(
+        (
+            k
+            for k, v in s.config.get("print", {}).items()
+            if isinstance(v, dict) and k.lower() == pack.lower()
+        ),
+        pack,
+    )
+    rep = printresults.report(pack_dir, s.print_options(collection if pack else ""))
+    if as_json:
+        print(json.dumps(rep, indent=2))
+        return
+    runs = Table("id", "kind", "when", "facts", title=str(shown))
+    for r in rep["runs"]:
+        runs.add_row(r["id"], r["kind"], (r["at"] or "")[:16], escape(r["facts"]))
+    console.print(runs)
+    if rep["recommendations"]:
+        recs = Table("id", "status", "target", "value", "reason", "from")
+        colour = {"pending": "yellow", "applied": "green", "declined": "dim"}
+        for r in rep["recommendations"]:
+            c = colour.get(r["status"], "cyan")
+            value = str(r.get("value", ""))
+            if r.get("alt"):
+                value += f" (alt: {r['alt']})"
+            recs.add_row(
+                r["id"],
+                f"[{c}]{r['status']}[/{c}]",
+                escape(str(r.get("target", ""))),
+                escape(value),
+                escape(str(r.get("reason", ""))),
+                str(r.get("from", "")),
+            )
+        console.print(recs)
+    else:
+        console.print("[dim]no recommendations[/dim]")
+    for note in rep["stale"]:
+        console.print(f"[yellow]stale:[/yellow] {escape(note)}")
+    if rep["pending"]:
+        console.print(
+            f"{len(rep['pending'])} pending: apply or decline each, record its id in "
+            "[print] feedback_applied / feedback_declined, then `blend print-pack`."
+        )
 
 
 @app.command("patterns-lib")

@@ -18,6 +18,7 @@ Plan first (no files touched), then create the model once the plan is approved. 
    - **Purpose:** still render, animation, game asset, 3D print (downstream pipeline), kit part.
    - **Style and detail:** realistic or stylized, hard-surface or organic.
    - **Scale and units:** real-world size; `--unit mm` for precise or printable work.
+   - If the purpose is **3D print**: use `--unit mm`, plan a **Print** collection (parts split for the 256 mm bed, joinery cut) and the `[print]` table (material, `[[print.part]]` supports/orientation intent, coupons for fits; `workflows/print-handoff.md`). Readiness checks and slicing are `/bambi:print` (bambi plugin), on the pack from `just print-pack`.
    - **References:** images in `refs/<slug>/` (gitignored), a sketch, or an asset (`search_assets`; `generate_3d` costs credits).
    - **What to explore:** which params the user wants as variants.
 4. Write the plan:

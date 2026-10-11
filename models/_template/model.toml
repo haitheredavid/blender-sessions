@@ -33,6 +33,37 @@ bed = 256                     # mm, square (Bambu Lab P1S)
 # orientation = "as modelled: lowest face on the bed"
 # hardware = []
 # assembly = []
+# feedback_applied = []      # results.json recommendation ids taken (`blend print-results`)
+# feedback_declined = []     # ...or turned down; re-pack after editing
+
+# [[print.part]]              # per-part intent; fnmatch `match`, later entries win key by key
+# match = "Piece_*"
+# supports = "none"           # none | auto | build-plate | everywhere
+# supports_why = ""
+# filament = 1
+# colour = "single"           # single | ams | glue-in | paint | engrave
+# into = "Body"               # colour host for ams inlays / glue-in pockets
+# rotate = [90, 0, 0]         # Euler XYZ degrees, applied before laying on the bed
+# flat = true                 # largest face down (beats rotate)
+# orientation_why = ""
+
+# [[print.filament]]          # multi-material only
+# id = 1
+# role = "body"
+# material = "pla"
+# color = "#111111"
+# profile_hint = "pla_basic"  # a bambi filament profile
+
+# [[print.coupon]]            # fit test; lives in the pack that prints it
+# id = "tenon"
+# param = "builders/joinery.py:TENON_CLEAR"
+# values = [0.10, 0.15, 0.20]
+# parts = { "0.10" = ["Coupon_C10_*"], "0.15" = ["Coupon_C15_*"], "0.20" = ["Coupon_C20_*"] }
+# rule = "tightest that slides in by hand"
+
+# [print.Coupon]              # `blend print-pack <m> --collection Coupon` -> print/coupon/
+# orientation = ""            # replaces orientation/flat/hardware/assembly/intent/feedback_*;
+                              # [[print.Coupon.part]] etc. replace the inherited arrays
 
 [speckle]                     # /checkpoint publishes here; see .context/speckle-guide.md
 account = "haitheredavid@gmail.com"   # chosen by email, never the connector's default

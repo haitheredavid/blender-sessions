@@ -36,9 +36,21 @@ Durable context lives in `.context/` (conventions in `.context/README.md`):
 - `/checkpoint [msg]` - save, check, publish a Speckle version, record it in the log.
 - `/wrap` - close the session: note, promote steps into builders, distill workflows, checkpoint, offer a commit.
 
+## Printing (bambi plugin)
+
+3D prints go to bambi, enabled here as the `bambi@bambi` Claude Code plugin (`.claude/settings.json`): skills `/bambi:print` (check, plan, slice, send) and `/bambi:print-log` (log outcomes and coupon fits), and the `bambi` CLI on PATH. `just print-pack <m>` writes the pack; `bambi init models/<m>/print` then `/bambi:print models/<m>`; `just print-results <m>` reads what came back. See `workflows/print-handoff.md`. Ownership:
+
+| File | Owner |
+|------|-------|
+| `model.toml`, `builders/`, `params.toml` | this repo |
+| `print/**/manifest.json`, `parts.blend`, `stl/`, `README.md` | `blend print-pack` (bambi never edits them) |
+| `print/**/session.toml`, `results.json`, `thumb.png`, `out/` | bambi (print-pack never deletes them) |
+
+Recommendations in `results.json` are bambi's only channel back: apply or decline each, record its id in `[print] feedback_applied` / `feedback_declined`, re-pack. Never run `bambi printer send --start` without the user's go-ahead.
+
 ## Commands
 
-Run `just` to list recipes. Key ones: `just ci`, `just fmt`, `just open <m>`, `just session <m> <slug>`, `just history <m>`, `just check|export|render|views|variants|animate|turntable <m>`, `just wrap <m>`. The full CLI is `uv run blend --help`.
+Run `just` to list recipes. Key ones: `just ci`, `just fmt`, `just open <m>`, `just session <m> <slug>`, `just history <m>`, `just check|export|render|views|variants|animate|turntable <m>`, `just print-pack|print-results <m>`, `just wrap <m>`. The full CLI is `uv run blend --help`.
 
 ## Standards
 
