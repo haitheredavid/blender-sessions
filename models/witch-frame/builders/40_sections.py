@@ -12,8 +12,14 @@
 # width capped at TENON_W. One box per seam (Cut_Tenons) cuts both mortises: the tenon
 # + TENON_CLEAR per side + TENON_END at each blind end (glue room, nozzle-rounded
 # corners). Chamfers on every tenon edge ride over elephant's foot and lead it in.
-# Pieces print back face down, so the mortise roof is a short bridge (the tenon width).
+# Pieces print back face down, so the mortise (and the tenon) has a 45 deg gable roof: it
+# prints without bridging, and the fit keeps WALL clear of the gable's apex too.
+# The back edge of every seam face gets a SEAM_CHAMFER, so first-layer squish can't hold
+# the seam open.
+import importlib
 import math
+import sys
+from pathlib import Path
 
 import bmesh
 import bpy
@@ -21,16 +27,24 @@ from kit import mesh, scene
 from mathutils import Vector
 from patterns import section_piece
 
-BED = 256.0
-TENON_LEN = 32.0  # across the seam, half in each piece
-TENON_W = 6.0  # max thickness across the rail (fitted down to the strip)
-TENON_MIN = (
-    3.0  # thinner than this and the seam needs a different joint (E strip: 7.8 mm)
+sys.path.insert(0, str(Path(__file__).parent))
+import joinery
+
+importlib.reload(joinery)  # before binding names, so edits apply without a restart
+from joinery import (
+    TENON_CHAMFER,
+    TENON_CLEAR,
+    TENON_END,
+    TENON_LEN,
+    TENON_MIN,
+    TENON_W,
+    WALL,
+    gable,
+    prism,
+    seam_wedge,
 )
-TENON_CLEAR = 0.15  # mortise clearance per side (PLA, glued)
-TENON_END = 0.5  # extra mortise depth at each blind end
-TENON_CHAMFER = 0.4  # 45 deg on every tenon edge
-WALL = 2.0  # min plastic around a mortise (5 lines at 0.4 mm)
+
+BED = 256.0
 STEP = 0.1  # fitting resolution
 
 frame = bpy.data.objects["Frame"]
@@ -89,21 +103,20 @@ def clear_of(pt, segs) -> bool:
 
 
 def mortise_ok(sections, s0, s1, z0, z1) -> bool:
-    g0, g1, h0, h1 = (
-        s0 - TENON_CLEAR,
-        s1 + TENON_CLEAR,
-        z0 - TENON_CLEAR,
-        z1 + TENON_CLEAR,
-    )
+    poly = gable(s0, s1, z0, z1, TENON_CLEAR)
     n = 8
-    ring = [(g0 + (g1 - g0) * i / n, h) for i in range(n + 1) for h in (h0, h1)]
-    ring += [(g, h0 + (h1 - h0) * i / n) for i in range(1, n) for g in (g0, g1)]
+    ring = [
+        (ax + (bx - ax) * i / n, az + (bz - az) * i / n)
+        for (ax, az), (bx, bz) in zip(poly, poly[1:] + poly[:1])
+        for i in range(n)
+    ]
     return all(clear_of(p, segs) for segs in sections for p in ring)
 
 
 def fit(seam_axis: int, side: int) -> tuple[float, float, float, float]:
     """Largest tenon section (s0, s1, z0, z1) clear of the profile along its length:
-    centred on the back strip, as wide as fits (<= TENON_W), then as tall as fits."""
+    as wide as fits (<= TENON_W) with TENON_MIN walls under its gable, then as tall as
+    fits. z1 is the top of the walls; the apex is (s1 - s0) / 2 above it."""
     half = TENON_LEN / 2 + TENON_END + TENON_CLEAR
     sections = [
         section(seam_axis, o, side) for o in (-half, -half / 2, 0, half / 2, half)
@@ -133,41 +146,31 @@ def fit(seam_axis: int, side: int) -> tuple[float, float, float, float]:
     return s0, s1, z0, z0 + h
 
 
-def bar(bm, centre: Vector, size: Vector, chamfer: float = 0.0) -> None:
-    """Axis box into bm, optionally with every edge chamfered."""
-    new = bmesh.ops.create_cube(bm, size=1.0)["verts"]
-    for v in new:
-        v.co = centre + Vector(c * d for c, d in zip(v.co, size))
-    if chamfer:
-        edges = list({e for v in new for e in v.link_edges})
-        bmesh.ops.bevel(bm, geom=edges, offset=chamfer, segments=1, affect="EDGES")
-
-
 cut_bm = bmesh.new()
 tenons = []
 # (name, seam axis, side): N/S tenons cross the x=0 seam in the top/bottom rails;
 # E/W cross the y=0 seam in the right/left rails
 for name, seam_axis, side in (("N", 0, 1), ("S", 0, -1), ("E", 1, 1), ("W", 1, -1)):
     s0, s1, z0, z1 = fit(seam_axis, side)
-    across = (s0 + s1) / 2 * side
-    c = (
-        Vector((0, across, (z0 + z1) / 2))
-        if seam_axis == 0
-        else Vector((across, 0, (z0 + z1) / 2))
-    )
-
     w, h = s1 - s0, z1 - z0
-    # bar sizes as (along the tenon, across the rail, z); the tenon runs along the seam axis
-    lw = (0, 1) if seam_axis == 0 else (1, 0)
-    mortise, tenon_size = Vector((0, 0, h + 2 * TENON_CLEAR)), Vector((0, 0, h))
-    mortise[lw[0]], mortise[lw[1]] = TENON_LEN + 2 * TENON_END, w + 2 * TENON_CLEAR
-    tenon_size[lw[0]], tenon_size[lw[1]] = TENON_LEN, w
-    bar(cut_bm, c, mortise)
+    prism(
+        cut_bm,
+        gable(s0, s1, z0, z1, TENON_CLEAR),
+        seam_axis,
+        side,
+        TENON_LEN + 2 * TENON_END,
+    )
     tb = bmesh.new()
-    bar(tb, c, tenon_size, TENON_CHAMFER)
+    prism(tb, gable(s0, s1, z0, z1), seam_axis, side, TENON_LEN, TENON_CHAMFER)
     tenon = mesh.from_bmesh(f"Tenon_{name}", tb, parts)
     tenon.color = (0.9, 0.55, 0.2, 1)
-    tenons.append((name, w, h, z0))
+    tenons.append((name, w, h + w / 2, z0))
+    tenon["fit"] = (s0, s1, z0, z1)  # 45_coupon cuts its test mortises from this
+    tenon["seam"] = (seam_axis, side)
+# seam back chamfers, from the sight opening out through each rail (the wedges don't
+# cross, so the cutter has no self-intersection)
+for seam_axis, side in ((0, 1), (0, -1), (1, 1), (1, -1)):
+    seam_wedge(cut_bm, seam_axis, side, dims[1 - seam_axis] / 4, max(dims))
 src.free()
 
 cutter = mesh.from_bmesh("Cut_Tenons", cut_bm, scene.work())
@@ -199,6 +202,6 @@ for o in parts.objects:
         print(f"sections: {o.name} {w:.1f} x {h:.1f} x {d:.1f} mm")
 for name, w, h, z0 in tenons:
     print(
-        f"sections: Tenon_{name} {TENON_LEN:.0f} x {w:.1f} x {h:.1f} mm at z {z0:.2f}, "
+        f"sections: Tenon_{name} {TENON_LEN:.0f} x {w:.1f} x {h:.1f} mm (gable) at z {z0:.2f}, "
         f">= {WALL} mm walls"
     )

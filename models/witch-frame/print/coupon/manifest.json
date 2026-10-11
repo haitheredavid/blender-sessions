@@ -1,0 +1,150 @@
+{
+  "model": "witch-frame",
+  "created": "2026-10-11T09:43:22-04:00",
+  "units": "mm",
+  "blend": "models/witch-frame/print/coupon/parts.blend",
+  "stl_dir": "models/witch-frame/print/coupon/stl",
+  "printer": "Bambu Lab P1S",
+  "bed_mm": 256.0,
+  "material": "PETG (Insignia, black)",
+  "orientation": "offcuts as modelled, back face down; tenons laid on a side face",
+  "hardware": [],
+  "assembly": [
+    "Print this before the frame. Three coupons of the E seam (the thinnest tenon): 1 notch = 0.10 mm clearance per side, 2 = 0.15, 3 = 0.20.",
+    "Dry-fit each tenon into both offcuts of its coupon. Pick the tightest one that slides in by hand with no force; it needs glue room.",
+    "Set TENON_CLEAR in builders/joinery.py to that clearance and rebuild before packing the frame."
+  ],
+  "parts": [
+    {
+      "name": "Coupon_C10_Tenon",
+      "size": [
+        9.62,
+        32.0,
+        3.4
+      ],
+      "volume_cm3": 0.97,
+      "manifold": true,
+      "fits_bed": true,
+      "flat": true,
+      "stl": "stl/Coupon_C10_Tenon.stl"
+    },
+    {
+      "name": "Coupon_C15_Tenon",
+      "size": [
+        9.62,
+        32.0,
+        3.4
+      ],
+      "volume_cm3": 0.97,
+      "manifold": true,
+      "fits_bed": true,
+      "flat": true,
+      "stl": "stl/Coupon_C15_Tenon.stl"
+    },
+    {
+      "name": "Coupon_C20_Tenon",
+      "size": [
+        9.62,
+        32.0,
+        3.4
+      ],
+      "volume_cm3": 0.97,
+      "manifold": true,
+      "fits_bed": true,
+      "flat": true,
+      "stl": "stl/Coupon_C20_Tenon.stl"
+    },
+    {
+      "name": "Coupon_C10_B",
+      "size": [
+        12.45,
+        20.5,
+        16.38
+      ],
+      "volume_cm3": 2.55,
+      "manifold": true,
+      "fits_bed": true,
+      "flat": false,
+      "stl": "stl/Coupon_C10_B.stl"
+    },
+    {
+      "name": "Coupon_C15_B",
+      "size": [
+        12.45,
+        20.5,
+        16.38
+      ],
+      "volume_cm3": 2.52,
+      "manifold": true,
+      "fits_bed": true,
+      "flat": false,
+      "stl": "stl/Coupon_C15_B.stl"
+    },
+    {
+      "name": "Coupon_C20_B",
+      "size": [
+        12.45,
+        20.5,
+        16.38
+      ],
+      "volume_cm3": 2.5,
+      "manifold": true,
+      "fits_bed": true,
+      "flat": false,
+      "stl": "stl/Coupon_C20_B.stl"
+    },
+    {
+      "name": "Coupon_C10_A",
+      "size": [
+        11.67,
+        20.5,
+        16.38
+      ],
+      "volume_cm3": 2.41,
+      "manifold": true,
+      "fits_bed": true,
+      "flat": false,
+      "stl": "stl/Coupon_C10_A.stl"
+    },
+    {
+      "name": "Coupon_C15_A",
+      "size": [
+        11.67,
+        20.5,
+        16.38
+      ],
+      "volume_cm3": 2.39,
+      "manifold": true,
+      "fits_bed": true,
+      "flat": false,
+      "stl": "stl/Coupon_C15_A.stl"
+    },
+    {
+      "name": "Coupon_C20_A",
+      "size": [
+        11.67,
+        20.5,
+        16.38
+      ],
+      "volume_cm3": 2.36,
+      "manifold": true,
+      "fits_bed": true,
+      "flat": false,
+      "stl": "stl/Coupon_C20_A.stl"
+    }
+  ],
+  "plates_suggested": [
+    [
+      "Coupon_C10_Tenon",
+      "Coupon_C15_Tenon",
+      "Coupon_C20_Tenon",
+      "Coupon_C10_B",
+      "Coupon_C15_B",
+      "Coupon_C20_B",
+      "Coupon_C10_A",
+      "Coupon_C15_A",
+      "Coupon_C20_A"
+    ]
+  ],
+  "total_volume_cm3": 17.6
+}
